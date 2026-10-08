@@ -2,3 +2,9 @@ url: https://glycoverse.github.io/glyrex/
 template:
   bootstrap: 5
 
+
+reference:
+  - title: Structural regular expressions
+    contents:
+      - rex_compile
+      - rex_query
