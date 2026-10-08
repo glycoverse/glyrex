@@ -1,5 +1,7 @@
 # glyrex 0.0.0.9000
 
+* Residue negation uses `[^A]`; the `[!A]` spelling is rejected with migration guidance.
+
 * `(!...-)` always asserts branch absence: `(!Fuc-)` forbids any Fuc branch at the attachment residue, while `(!Fuca3-)` restricts the forbidden branch to an alpha1-3 linkage.
 
 * `rex_compile()` compiles glycowork-style glycan patterns with branches, repetition, location anchors, lookaround, and named captures, including glyrepr reducing-end configuration constraints.

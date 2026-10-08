@@ -1,3 +1,4 @@
+# The upstream [!Gal] alias is adapted to the supported [^Gal] syntax.
 list(
   list(
     pattern = "Hex-HexNAc-([Hex|Fuc])?-HexNAc",
@@ -283,7 +284,7 @@ list(
     line = 3787L
   ),
   list(
-    pattern = "Fuc-([!Gal])+-GlcNAc",
+    pattern = "Fuc-([^Gal])+-GlcNAc",
     glycan = "Fuc(a1-3)[GlcNAc(b1-4)]GlcNAc",
     expected = list(
       "Fuc(a1-3)[GlcNAc(b1-4)]GlcNAc"

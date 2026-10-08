@@ -21,7 +21,7 @@ Residues are separated by \code{-}. Linkages accept shorthand (\code{Galb4}) or
 IUPAC notation (\code{Gal(b1-4)}). \code{.} matches any residue; \code{Hex}, \code{HexNAc},
 and other glyrepr classes match their concrete members. \code{Sia} matches
 Neu5Ac, Neu5Gc, and Kdn. \verb{[Gal|Man]} expresses alternatives; \verb{[^Fuc]}
-(or \verb{[!Fuc]}) excludes residues. Parentheses describe a sibling branch,
+excludes residues. Parentheses describe a sibling branch,
 as in \code{Galb4-(Fuca3)-GlcNAc}. A negated linked residue, \code{!Fuca3},
 asserts that such a branch is absent at the current attachment point.
 \verb{(!...-)} always asserts branch absence: \verb{(!Fuc-)} forbids a Fuc branch

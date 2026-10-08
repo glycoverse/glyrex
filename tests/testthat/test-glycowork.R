@@ -50,7 +50,7 @@ test_that("lookbehinds constrain individual branches", {
 })
 
 test_that("negated linked groups assert absence without consuming residues", {
-  p <- "Galb3-([!GlcNAcb6]){1}-GalNAc"
+  p <- "Galb3-(!GlcNAcb6-)GalNAc"
   expect_equal(
     rex_detect(c("Gal(b1-3)GalNAc", "Gal(b1-3)[GlcNAc(b1-6)]GalNAc"), p),
     c(TRUE, FALSE)

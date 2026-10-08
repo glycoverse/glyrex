@@ -70,3 +70,27 @@
       Error:
       ! Invalid pattern at character 9: Invalid, duplicate, or reserved capture name.
 
+# bracketed exclamation negation is rejected
+
+    Code
+      rex_compile("[!Fuc]")
+    Condition
+      Error:
+      ! Invalid pattern at character 2: '[!...]' is not supported; use '[^...]' for residue negation or '(!...-)' for branch absence.
+
+---
+
+    Code
+      rex_compile("Gal-([!Fuca3])-GlcNAc")
+    Condition
+      Error:
+      ! Invalid pattern at character 7: '[!...]' is not supported; use '[^...]' for residue negation or '(!...-)' for branch absence.
+
+---
+
+    Code
+      rex_compile("[Gal|!Man]")
+    Condition
+      Error:
+      ! Invalid pattern at character 6: '[!...]' is not supported; use '[^...]' for residue negation or '(!...-)' for branch absence.
+

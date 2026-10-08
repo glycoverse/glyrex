@@ -98,7 +98,7 @@ graph inputs retain their existing vertex and edge IDs.
 | `-` | Connected path towards the reducing end | `Gal-GlcNAc` |
 | Linkage | Shorthand or full linkage constraint | `Galb4`, `Gal(b1-4)` |
 | `[...]` | Alternatives separated by a vertical bar | See below. |
-| `[^A]`, `[!A]` | Negated residue | `[^Fuc]-GlcNAc` |
+| `[^A]` | Negated residue | `[^Fuc]-GlcNAc` |
 | `(path)` | Sibling branch at the next attachment residue | `Galb4-(Fuca3)-GlcNAc` |
 | `(!branch-)` | Assert absence of a branch, optionally with linkage constraints | `Galb4-(!Fuc-)GlcNAc` |
 | `!linked-residue` | Assert absence of an unconsumed branch | `Galb3-!GlcNAcb6-GalNAc` |
@@ -177,6 +177,8 @@ plus branch assertions, named captures, reducing-end configuration, vector
 behavior, and floating-input rejection. Upstream output comparisons normalize
 only reducing-end configuration and canonical branch order. Compact-IUPAC input
 conversion and floating structures are outside the supported input contract.
-Unknown residue names are compilation errors. Named captures and non-capturing
+Unknown residue names are compilation errors. The upstream `[!A]` alias is
+rejected; use `[^A]` for residue negation or `(!A-)` for branch absence.
+The upstream negation-alias test is adapted to `[^A]`. Named captures and non-capturing
 path groups extend the upstream language; open repetition bounds use the graph
 size instead of a fixed limit.

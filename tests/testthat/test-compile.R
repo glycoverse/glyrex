@@ -22,3 +22,11 @@ test_that("malformed patterns fail at compilation", {
 test_that("the full-match column name cannot be shadowed by a capture", {
   expect_snapshot(error = TRUE, rex_compile("(?<match>Gal)"))
 })
+
+test_that("bracketed exclamation negation is rejected", {
+  expect_snapshot(error = TRUE, rex_compile("[!Fuc]"))
+  expect_snapshot(error = TRUE, rex_compile("Gal-([!Fuca3])-GlcNAc"))
+  expect_snapshot(error = TRUE, rex_compile("[Gal|!Man]"))
+  expect_equal(rex_detect(c("Fuc", "Gal"), "[^Fuc]"), c(FALSE, TRUE))
+  expect_equal(rex_detect("Gal(b1-4)GlcNAc", "Gal-(!Fuc-)GlcNAc"), TRUE)
+})

@@ -10,7 +10,7 @@
 #' IUPAC notation (`Gal(b1-4)`). `.` matches any residue; `Hex`, `HexNAc`,
 #' and other glyrepr classes match their concrete members. `Sia` matches
 #' Neu5Ac, Neu5Gc, and Kdn. `[Gal|Man]` expresses alternatives; `[^Fuc]`
-#' (or `[!Fuc]`) excludes residues. Parentheses describe a sibling branch,
+#' excludes residues. Parentheses describe a sibling branch,
 #' as in `Galb4-(Fuca3)-GlcNAc`. A negated linked residue, `!Fuca3`,
 #' asserts that such a branch is absent at the current attachment point.
 #' `(!...-)` always asserts branch absence: `(!Fuc-)` forbids a Fuc branch
@@ -103,7 +103,7 @@ rex_compile <- function(pattern) {
       } else if (ch == "[") {
         grouped <- TRUE
         pos <<- pos + 1L
-        neg <- peek() %in% c("^", "!")
+        neg <- peek() == "^"
         if (neg) {
           pos <<- pos + 1L
         }
@@ -338,10 +338,18 @@ rex_compile <- function(pattern) {
     out
   }
   parse_alts <- function(close) {
-    alternatives <- list(parse_seq(close))
+    parse_alternative <- function() {
+      if (close == "]" && peek() == "!") {
+        fail(
+          "'[!...]' is not supported; use '[^...]' for residue negation or '(!...-)' for branch absence."
+        )
+      }
+      parse_seq(close)
+    }
+    alternatives <- list(parse_alternative())
     while (peek() == "|") {
       pos <<- pos + 1L
-      alternatives[[length(alternatives) + 1L]] <- parse_seq(close)
+      alternatives[[length(alternatives) + 1L]] <- parse_alternative()
     }
     if (peek() != close) {
       fail(paste0("Expected '", close, "'."))
