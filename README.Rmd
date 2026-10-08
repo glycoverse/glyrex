@@ -100,7 +100,7 @@ graph inputs retain their existing vertex and edge IDs.
 | `[...]` | Alternatives separated by a vertical bar | See below. |
 | `[^A]`, `[!A]` | Negated residue | `[^Fuc]-GlcNAc` |
 | `(path)` | Sibling branch at the next attachment residue | `Galb4-(Fuca3)-GlcNAc` |
-| `(!branch)` | Assert absence of a branch, optionally with linkage constraints | `Galb4-(!Fuc)-GlcNAc` |
+| `(!branch-)` | Assert absence of a branch, optionally with linkage constraints | `Galb4-(!Fuc-)GlcNAc` |
 | `!linked-residue` | Assert absence of an unconsumed branch | `Galb3-!GlcNAcb6-GalNAc` |
 | `?`, `*`, `+`, `{n,m}` | Repeat bracketed units or branches | `[HexNAc]{2,}` |
 | Lazy suffix `?` | Prefer fewer repetitions | `Hex-[HexNAc]+?` |
@@ -134,11 +134,14 @@ Distinct branches can yield identical extracted sequences. Matches can overlap;
 counts are structural, not text-regex occurrence counts. Zero-length matches
 are omitted.
 
-`(!...)` always means that the specified branch is absent at the next
-attachment residue. For example, `Neu5Aca3-Galb4-(!Fuc)-GlcNAc` forbids any
-Fuc branch on GlcNAc, while `Neu5Aca3-Galb4-(!Fuca3)-GlcNAc` forbids only
+`(!...-)` always means that the specified branch is absent at the next
+attachment residue. For example, `Neu5Aca3-Galb4-(!Fuc-)GlcNAc` forbids any
+Fuc branch on GlcNAc, while `Neu5Aca3-Galb4-(!Fuca3-)GlcNAc` forbids only
 an alpha1-3 Fuc branch there. These assertions consume no residues and exclude
 nodes already used by the matched path. Other branches remain allowed.
+The standard spelling places the attachment dash inside the group, before
+`)`, and writes the attachment residue immediately after it. The earlier
+spelling `Neu5Aca3-Galb4-(!Fuc)-GlcNAc` remains accepted as an alias.
 
 ## Reducing-end configuration
 

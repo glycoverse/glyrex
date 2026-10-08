@@ -13,10 +13,13 @@
 #' (or `[!Fuc]`) excludes residues. Parentheses describe a sibling branch,
 #' as in `Galb4-(Fuca3)-GlcNAc`. A negated linked residue, `!Fuca3`,
 #' asserts that such a branch is absent at the current attachment point.
-#' `(!...)` always asserts branch absence: `(!Fuc)` forbids a Fuc branch
-#' with any linkage, whereas `(!Fuca3)` forbids an alpha1-3 Fuc branch.
+#' `(!...-)` always asserts branch absence: `(!Fuc-)` forbids a Fuc branch
+#' with any linkage, whereas `(!Fuca3-)` forbids an alpha1-3 Fuc branch.
 #' The assertion checks unconsumed branches attached to the next residue,
 #' consumes no nodes, and can contain a multi-residue branch pattern.
+#' Write the attachment dash inside the group, immediately before `)`,
+#' followed directly by the attachment residue: `Galb4-(!Fuc-)GlcNAc`.
+#' The earlier spelling `Galb4-(!Fuc)-GlcNAc` remains accepted as an alias.
 #'
 #' Bracketed groups accept `?`, `*`, `+`, `{n}`, `{n,m}`, `{n,}`, or
 #' `{,m}`. Append `?` for lazy repetition. Open bounds are limited by
