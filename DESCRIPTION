@@ -1,12 +1,21 @@
 Package: glyrex
-Title: What the Package Does (One Line, Title Case)
+Title: Regular Expressions for Glycan Structures
 Version: 0.0.0.9000
 Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"))
-Description: What the package does (one paragraph).
+    person("Bin", "Fu", , "23110220018@m.fudan.edu.cn", role = c("aut", "cre"))
+Description: Compile and match glycan structural regular expressions with
+    a stringr-like interface. Supports residue classes, linkage constraints,
+    branches, repetition, assertions, and named captures on glyrepr graphs,
+    including explicit reducing-end anomeric information.
 License: MIT + file LICENSE
+Imports:
+    glyrepr (>= 1.1.0),
+    igraph,
+    utils
 Suggests: 
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    knitr,
+    rmarkdown
 Config/testthat/edition: 3
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
