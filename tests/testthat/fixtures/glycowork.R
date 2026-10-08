@@ -1,4 +1,4 @@
-# The upstream [!Gal] alias is adapted to the supported [^Gal] syntax.
+# Upstream negation spellings are adapted to [^Gal] and (!Neu5Ac-).
 list(
   list(
     pattern = "Hex-HexNAc-([Hex|Fuc])?-HexNAc",
@@ -50,7 +50,7 @@ list(
     line = 3632L
   ),
   list(
-    pattern = "!Neu5Ac-Gal-GlcNAc",
+    pattern = "(!Neu5Ac-)Gal-GlcNAc",
     glycan = "Neu5Ac(a2-3)Gal(b1-3)[Fuc(a1-4)]GlcNAc(b1-2)Man(a1-3)[Fuc(a1-3)[Gal(b1-4)]GlcNAc(b1-2)Man(a1-6)]Man(b1-4)GlcNAc(b1-4)GlcNAc",
     expected = list("Gal(b1-4)GlcNAc"),
     line = 3633L

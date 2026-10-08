@@ -94,3 +94,35 @@
       Error:
       ! Invalid pattern at character 6: '[!...]' is not supported; use '[^...]' for residue negation or '(!...-)' for branch absence.
 
+# only explicit branch absence groups are accepted
+
+    Code
+      rex_compile("Gal-!Fuca3-GlcNAc")
+    Condition
+      Error:
+      ! Invalid pattern at character 5: Bare !residue is not supported; use (!branch-) for branch absence or [^residue] for residue negation.
+
+---
+
+    Code
+      rex_compile("!Fuc")
+    Condition
+      Error:
+      ! Invalid pattern at character 1: Bare !residue is not supported; use (!branch-) for branch absence or [^residue] for residue negation.
+
+---
+
+    Code
+      rex_compile("Gal-(!Fuc)-GlcNAc")
+    Condition
+      Error:
+      ! Invalid pattern at character 10: Branch absence requires a trailing attachment dash: use (!branch-)residue.
+
+---
+
+    Code
+      rex_compile("Gal-(!Fuca3)-GlcNAc")
+    Condition
+      Error:
+      ! Invalid pattern at character 12: Branch absence requires a trailing attachment dash: use (!branch-)residue.
+

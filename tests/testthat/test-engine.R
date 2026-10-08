@@ -69,7 +69,7 @@ test_that("assertions consume no nodes and bind to the right direction", {
   expect_equal(
     rex_detect(
       c("Gal(b1-4)GlcNAc", "Gal(b1-4)[Fuc(a1-3)]GlcNAc"),
-      "Gal-!Fuca3-GlcNAc"
+      "Gal-(!Fuca3-)GlcNAc"
     ),
     c(TRUE, FALSE)
   )
@@ -114,10 +114,6 @@ test_that("parenthesized negation always asserts absence at the attachment", {
   )
   any_fuc <- "Neu5Aca3-Galb4-(!Fuc-)GlcNAc"
   a3_fuc <- "Neu5Aca3-Galb4-(!Fuca3-)GlcNAc"
-  expect_equal(
-    rex_compile(any_fuc)$tree,
-    rex_compile("Neu5Aca3-Galb4-(!Fuc)-GlcNAc")$tree
-  )
   expect_equal(rex_detect(x, any_fuc), c(TRUE, FALSE, FALSE, TRUE, TRUE, FALSE))
   expect_equal(rex_detect(x, a3_fuc), c(TRUE, FALSE, TRUE, TRUE, TRUE, TRUE))
   expect_equal(rex_detect(x, rex_compile(any_fuc)), rex_detect(x, any_fuc))

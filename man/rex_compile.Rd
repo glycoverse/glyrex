@@ -22,15 +22,14 @@ IUPAC notation (\code{Gal(b1-4)}). \code{.} matches any residue; \code{Hex}, \co
 and other glyrepr classes match their concrete members. \code{Sia} matches
 Neu5Ac, Neu5Gc, and Kdn. \verb{[Gal|Man]} expresses alternatives; \verb{[^Fuc]}
 excludes residues. Parentheses describe a sibling branch,
-as in \code{Galb4-(Fuca3)-GlcNAc}. A negated linked residue, \code{!Fuca3},
-asserts that such a branch is absent at the current attachment point.
+as in \code{Galb4-(Fuca3)-GlcNAc}.
 \verb{(!...-)} always asserts branch absence: \verb{(!Fuc-)} forbids a Fuc branch
 with any linkage, whereas \verb{(!Fuca3-)} forbids an alpha1-3 Fuc branch.
 The assertion checks unconsumed branches attached to the next residue,
 consumes no nodes, and can contain a multi-residue branch pattern.
 Write the attachment dash inside the group, immediately before \verb{)},
 followed directly by the attachment residue: \verb{Galb4-(!Fuc-)GlcNAc}.
-The earlier spelling \code{Galb4-(!Fuc)-GlcNAc} remains accepted as an alias.
+Bare \code{!residue} and absence groups without the final dash are rejected.
 
 Bracketed groups accept \verb{?}, \code{*}, \code{+}, \code{{n}}, \verb{\{n,m\}}, \verb{\{n,\}}, or
 \verb{\{,m\}}. Append \verb{?} for lazy repetition. Open bounds are limited by

@@ -101,7 +101,6 @@ graph inputs retain their existing vertex and edge IDs.
 | `[^A]` | Negated residue | `[^Fuc]-GlcNAc` |
 | `(path)` | Sibling branch at the next attachment residue | `Galb4-(Fuca3)-GlcNAc` |
 | `(!branch-)` | Assert absence of a branch, optionally with linkage constraints | `Galb4-(!Fuc-)GlcNAc` |
-| `!linked-residue` | Assert absence of an unconsumed branch | `Galb3-!GlcNAcb6-GalNAc` |
 | `?`, `*`, `+`, `{n,m}` | Repeat bracketed units or branches | `[HexNAc]{2,}` |
 | Lazy suffix `?` | Prefer fewer repetitions | `Hex-[HexNAc]+?` |
 | `^`, `$`, `%` | Non-reducing terminus, reducing end, internal position | `^Gal`, `GlcNAc$`, `Hex%` |
@@ -140,8 +139,8 @@ Fuc branch on GlcNAc, while `Neu5Aca3-Galb4-(!Fuca3-)GlcNAc` forbids only
 an alpha1-3 Fuc branch there. These assertions consume no residues and exclude
 nodes already used by the matched path. Other branches remain allowed.
 The standard spelling places the attachment dash inside the group, before
-`)`, and writes the attachment residue immediately after it. The earlier
-spelling `Neu5Aca3-Galb4-(!Fuc)-GlcNAc` remains accepted as an alias.
+`)`, and writes the attachment residue immediately after it. Bare
+`!linked-residue` and absence groups without the final dash are rejected.
 
 ## Reducing-end configuration
 
@@ -179,6 +178,6 @@ only reducing-end configuration and canonical branch order. Compact-IUPAC input
 conversion and floating structures are outside the supported input contract.
 Unknown residue names are compilation errors. The upstream `[!A]` alias is
 rejected; use `[^A]` for residue negation or `(!A-)` for branch absence.
-The upstream negation-alias test is adapted to `[^A]`. Named captures and non-capturing
+Upstream negation tests are adapted to `[^A]` and `(!branch-)`. Named captures and non-capturing
 path groups extend the upstream language; open repetition bounds use the graph
 size instead of a fixed limit.

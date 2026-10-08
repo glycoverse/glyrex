@@ -11,15 +11,14 @@
 #' and other glyrepr classes match their concrete members. `Sia` matches
 #' Neu5Ac, Neu5Gc, and Kdn. `[Gal|Man]` expresses alternatives; `[^Fuc]`
 #' excludes residues. Parentheses describe a sibling branch,
-#' as in `Galb4-(Fuca3)-GlcNAc`. A negated linked residue, `!Fuca3`,
-#' asserts that such a branch is absent at the current attachment point.
+#' as in `Galb4-(Fuca3)-GlcNAc`.
 #' `(!...-)` always asserts branch absence: `(!Fuc-)` forbids a Fuc branch
 #' with any linkage, whereas `(!Fuca3-)` forbids an alpha1-3 Fuc branch.
 #' The assertion checks unconsumed branches attached to the next residue,
 #' consumes no nodes, and can contain a multi-residue branch pattern.
 #' Write the attachment dash inside the group, immediately before `)`,
 #' followed directly by the attachment residue: `Galb4-(!Fuc-)GlcNAc`.
-#' The earlier spelling `Galb4-(!Fuc)-GlcNAc` remains accepted as an alias.
+#' Bare `!residue` and absence groups without the final dash are rejected.
 #'
 #' Bracketed groups accept `?`, `*`, `+`, `{n}`, `{n,m}`, `{n,}`, or
 #' `{,m}`. Append `?` for lazy repetition. Open bounds are limited by
@@ -118,17 +117,7 @@ rex_compile <- function(pattern) {
           ) {
             fail("Negated alternatives must be single residues.")
           }
-          term <- node(
-            if (
-              length(alternatives) == 1L &&
-                !is.null(alternatives[[1L]][[1L]]$acceptor)
-            ) {
-              "absent"
-            } else {
-              "not"
-            },
-            alternatives = alternatives
-          )
+          term <- node("not", alternatives = alternatives)
         } else {
           term <- node("group", alternatives = alternatives)
         }
@@ -158,7 +147,7 @@ rex_compile <- function(pattern) {
         } else if (peek() == "?") {
           fail("Unknown group syntax.")
         }
-        alternatives <- parse_alts(")")
+        alternatives <- parse_alts(")", branch_absence = kind == "absent")
         term <- node(
           kind,
           alternatives = alternatives,
@@ -166,9 +155,10 @@ rex_compile <- function(pattern) {
           direction = prefix
         )
       } else {
-        absent <- peek() == "!"
-        if (absent) {
-          pos <<- pos + 1L
+        if (peek() == "!") {
+          fail(
+            "Bare !residue is not supported; use (!branch-) for branch absence or [^residue] for residue negation."
+          )
         }
         token <- take("^(?:[DL]-)?[A-Za-z0-9.][A-Za-z0-9./]*")
         if (is.null(token)) {
@@ -257,13 +247,6 @@ rex_compile <- function(pattern) {
           acceptor = acceptor,
           root = root
         )
-        if (absent) {
-          term <- if (!is.null(acceptor) || peek() == "-") {
-            node("absent", alternatives = list(list(term)))
-          } else {
-            node("not", alternatives = list(list(term)))
-          }
-        }
       }
       quant <- take("^(?:\\{[^}]*\\}|[?*+])")
       if (!is.null(quant)) {
@@ -337,14 +320,20 @@ rex_compile <- function(pattern) {
     }
     out
   }
-  parse_alts <- function(close) {
+  parse_alts <- function(close, branch_absence = FALSE) {
     parse_alternative <- function() {
       if (close == "]" && peek() == "!") {
         fail(
           "'[!...]' is not supported; use '[^...]' for residue negation or '(!...-)' for branch absence."
         )
       }
-      parse_seq(close)
+      alternative <- parse_seq(close)
+      if (branch_absence && substr(pattern, pos - 1L, pos - 1L) != "-") {
+        fail(
+          "Branch absence requires a trailing attachment dash: use (!branch-)residue."
+        )
+      }
+      alternative
     }
     alternatives <- list(parse_alternative())
     while (peek() == "|") {
