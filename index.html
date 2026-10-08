@@ -5,14 +5,14 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>What the Package Does (One Line, Title Case) • glyrex</title>
+<title>Regular Expressions for Glycan Structures • glyrex</title>
 <script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="What the Package Does (One Line, Title Case)">
-<meta name="description" content="What the package does (one paragraph).">
-<meta property="og:description" content="What the package does (one paragraph).">
+<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Regular Expressions for Glycan Structures">
+<meta name="description" content="Compile and match glycan structural regular expressions with a stringr-like interface. Supports residue classes, linkage constraints, branches, repetition, assertions, and named captures on glyrepr graphs, including explicit reducing-end anomeric information.">
+<meta property="og:description" content="Compile and match glycan structural regular expressions with a stringr-like interface. Supports residue classes, linkage constraints, branches, repetition, assertions, and named captures on glyrepr graphs, including explicit reducing-end anomeric information.">
 <meta property="og:image" content="https://glycoverse.github.io/glyrex/logo.png">
 </head>
 <body>
@@ -33,6 +33,7 @@
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
 <li class="nav-item"><a class="nav-link" href="reference/index.html">Reference</a></li>
+<li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
 <li class="nav-item"><form class="form-inline" role="search">
@@ -53,124 +54,58 @@
 </div>
 <!-- badges: start -->
 
-<p><code>glyrex</code> is being developed as a unified structural query language for glycans within the <a href="https://github.com/glycoverse" class="external-link">glycoverse</a> ecosystem. It combines a <a href="https://stringr.tidyverse.org/" class="external-link">stringr</a>-style API, a glycan-aware regular expression language, and a graph-native matching engine specialized for rooted glycan trees.</p>
-<p>Where stringr queries strings with regular expressions, glyrex aims to query glycan structures with glyco-regular expressions. Patterns describe residues, glycosidic linkages, paths, and branches rather than positions in an IUPAC string.</p>
-<p><strong>Development status:</strong> The package is currently a scaffold. The API, pattern syntax, and examples below describe the intended design and are not implemented or runnable yet.</p>
+<p><code>glyrex</code> searches glycan structures using a glycowork-style regular expression language and a stringr-style R API. Matching follows glycan graph topology, including branches, rather than character positions in an IUPAC string.</p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
-<p>Currently, glyrex is available as a development version from <a href="https://github.com/glycoverse/glyrex" class="external-link">GitHub</a>:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># install.packages("pak")</span></span>
 <span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pkg_install.html" class="external-link">pkg_install</a></span><span class="op">(</span><span class="st">"glycoverse/glyrex"</span><span class="op">)</span></span></code></pre></div>
-<p>CRAN, r-universe, and GitHub release installation instructions will be added when those distributions become available.</p>
-<p><strong>Note:</strong> General installation tips for the meta-package <a href="https://github.com/glycoverse/glycoverse" class="external-link">glycoverse</a> are also useful here: <a href="https://github.com/glycoverse/glycoverse#installation" class="external-link">Installation of glycoverse</a>.</p>
+<p>This is an experimental development package. It depends on <a href="https://glycoverse.github.io/glyrepr/" class="external-link">glyrepr</a> for glycan representations.</p>
 </div>
 <div class="section level2">
-<h2 id="documentation">Documentation<a class="anchor" aria-label="anchor" href="#documentation"></a>
+<h2 id="role-in-glycoverse">Role in glycoverse<a class="anchor" aria-label="anchor" href="#role-in-glycoverse"></a>
 </h2>
-<p>Function reference documentation and a getting-started guide will be added as the public API develops. For now, follow development and report issues on <a href="https://github.com/glycoverse/glyrex" class="external-link">GitHub</a>.</p>
-</div>
-<div class="section level2">
-<h2 id="role-in-glycoverse">Role in <code>glycoverse</code>
-<a class="anchor" aria-label="anchor" href="#role-in-glycoverse"></a>
-</h2>
-<p><a href="https://github.com/glycoverse/glyrepr" class="external-link">glyrepr</a> provides glycan representations; <code>glyrex</code> will provide the language and operations for searching those structures. Character inputs will be converted through glyrepr, while existing glyrepr structure objects will be matched directly.</p>
-<p>The planned query objects will complement the motif analysis tools in <a href="https://github.com/glycoverse/glymotif" class="external-link">glymotif</a> and provide a reusable structural query interface for other glycoverse packages.</p>
-</div>
-<div class="section level2">
-<h2 id="planned-api">Planned API<a class="anchor" aria-label="anchor" href="#planned-api"></a>
-</h2>
-<p>The API follows familiar stringr operations, adapted to glycan structures:</p>
-<table class="table">
-<colgroup>
-<col width="37%">
-<col width="62%">
-</colgroup>
-<thead><tr>
-<th align="left">Function</th>
-<th align="left">Intended operation</th>
-</tr></thead>
-<tbody>
-<tr>
-<td align="left"><code>rex_detect()</code></td>
-<td align="left">Test whether each glycan contains a pattern.</td>
-</tr>
-<tr>
-<td align="left"><code>rex_count()</code></td>
-<td align="left">Count structural matches in each glycan.</td>
-</tr>
-<tr>
-<td align="left">
-<code>rex_extract()</code> / <code>rex_extract_all()</code>
-</td>
-<td align="left">Extract the first or all matching subglycans.</td>
-</tr>
-<tr>
-<td align="left">
-<code>rex_match()</code> / <code>rex_match_all()</code>
-</td>
-<td align="left">Return matches and named captures.</td>
-</tr>
-<tr>
-<td align="left">
-<code>rex_locate()</code> / <code>rex_locate_all()</code>
-</td>
-<td align="left">Locate matching nodes and edges.</td>
-</tr>
-<tr>
-<td align="left"><code>rex_subset()</code></td>
-<td align="left">Keep glycans that match a pattern.</td>
-</tr>
-<tr>
-<td align="left"><code>rex_which()</code></td>
-<td align="left">Return the indices of matching glycans.</td>
-</tr>
-<tr>
-<td align="left"><code>rex_compile()</code></td>
-<td align="left">Compile a pattern once for reuse as a <code>glyrex_pattern</code> object.</td>
-</tr>
-<tr>
-<td align="left">
-<code>rex_validate()</code> / <code>rex_explain()</code>
-</td>
-<td align="left">Validate patterns and explain their parsed structure.</td>
-</tr>
-</tbody>
-</table>
-<p>Extraction is intended to preserve the input representation: character input returns character output, and glyrepr input returns glyrepr structures. Locations will identify graph nodes and edges rather than character offsets. Pattern objects (<code>glyrex_pattern</code>) and match objects (<code>glyrex_match</code>) will be separate, so queries can be reused and results can retain structural context.</p>
-</div>
-<div class="section level2">
-<h2 id="planned-pattern-language">Planned pattern language<a class="anchor" aria-label="anchor" href="#planned-pattern-language"></a>
-</h2>
-<p>Patterns will support residue names and shared residue classes, linkage constraints, wildcards, sequences, branches, alternatives, negation, quantifiers, anchors, and lookaround. Named captures are planned separately from ordinary parentheses, which express branches.</p>
-<p>For example, <code>Neu5Aca3-Galb4-GlcNAc</code> is intended to describe a structural path with specified residues and linkages. Generic residue classes such as <code>Hex</code> and <code>HexNAc</code> will use shared glycoverse residue definitions.</p>
-<p>Patterns will be parsed into an explicit abstract syntax tree and compiled for matching against rooted glycan trees. Open-ended quantifiers (<code>*</code>, <code>+</code>, and <code>{n,}</code>) will be bounded by the input structure, with no fixed repeat limit.</p>
-<p>The initial scope targets rooted, connected glycan trees. Nested branch patterns, repeat units, ambiguous topology, composition-only inputs, and graph rewriting are deferred. Capture support is planned beyond the initial core search operations.</p>
+<p><code>glymotif</code> provides a concise syntax for matching glycan motifs. However, exact motif matching may not be sufficient to express more complex structural constraints. For example, a sialyl-LacNAc motif without fucosylation cannot be specified using a bare IUPAC-condensed sequence. To address this limitation, glyrex introduces a dedicated glyco-regex syntax that enables more flexible and expressive pattern matching.</p>
 </div>
 <div class="section level2">
 <h2 id="example">Example<a class="anchor" aria-label="anchor" href="#example"></a>
 </h2>
-<p>The following illustrates the planned workflow. These functions are not yet available, and this example is not executed when building the README.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://glycoverse.github.io/glyrex/">glyrex</a></span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">glycans</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
-<span>  <span class="st">"Neu5Ac(a2-3)Gal(b1-4)GlcNAc"</span>,</span>
-<span>  <span class="st">"Gal(b1-4)GlcNAc"</span></span>
+<span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>  <span class="st">"Gal(b1-4)[Fuc(a1-3)]GlcNAc(a1-"</span>,</span>
+<span>  <span class="st">"Gal(b1-4)GlcNAc(b1-"</span>,</span>
+<span>  <span class="cn">NA_character_</span></span>
 <span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Compile once and reuse across operations</span></span>
-<span><span class="va">pattern</span> <span class="op">&lt;-</span> <span class="fu">rex_compile</span><span class="op">(</span><span class="st">"Neu5Aca3-Galb4-GlcNAc"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu">rex_detect</span><span class="op">(</span><span class="va">glycans</span>, <span class="va">pattern</span><span class="op">)</span></span>
-<span><span class="fu">rex_subset</span><span class="op">(</span><span class="va">glycans</span>, <span class="va">pattern</span><span class="op">)</span></span>
-<span><span class="fu">rex_count</span><span class="op">(</span><span class="va">glycans</span>, <span class="va">pattern</span><span class="op">)</span></span>
-<span><span class="fu">rex_extract_all</span><span class="op">(</span><span class="va">glycans</span>, <span class="va">pattern</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Locate matches by glycan node and edge IDs</span></span>
-<span><span class="fu">rex_locate_all</span><span class="op">(</span><span class="va">glycans</span>, <span class="va">pattern</span><span class="op">)</span></span></code></pre></div>
-<p>A future named-capture query could use <code>(?&lt;antenna&gt;Neu5Aca3-Galb4)-GlcNAc</code> with <code>rex_match_all()</code> to extract both the full match and the captured antenna.</p>
+<span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/rex_compile.html">rex_compile</a></span><span class="op">(</span><span class="st">"Galb4-(Fuca3)-GlcNAc"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="reference/rex_query.html">rex_detect</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">p</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1]  TRUE FALSE    NA</span></span>
+<span><span class="fu"><a href="reference/rex_query.html">rex_extract</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">p</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "Fuc(a1-3)[Gal(b1-4)]GlcNAc(a1-" NA</span></span>
+<span><span class="co">#&gt; [3] NA</span></span>
+<span><span class="fu"><a href="reference/rex_query.html">rex_match</a></span><span class="op">(</span><span class="va">x</span>, <span class="st">"(?&lt;antenna&gt;Galb4)-GlcNAc"</span><span class="op">)</span></span>
+<span><span class="co">#&gt;      match                 antenna</span></span>
+<span><span class="co">#&gt; [1,] "Gal(b1-4)GlcNAc(a1-" "Gal(b1-"</span></span>
+<span><span class="co">#&gt; [2,] "Gal(b1-4)GlcNAc(b1-" "Gal(b1-"</span></span>
+<span><span class="co">#&gt; [3,] NA                    NA</span></span>
+<span><span class="fu"><a href="reference/rex_query.html">rex_locate_all</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">p</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [[1]]</span></span>
+<span><span class="co">#&gt;     nodes edges</span></span>
+<span><span class="co">#&gt; 1 1, 2, 3  1, 2</span></span>
+<span><span class="co">#&gt;</span></span>
+<span><span class="co">#&gt; [[2]]</span></span>
+<span><span class="co">#&gt; [1] nodes edges</span></span>
+<span><span class="co">#&gt; &lt;0 rows&gt; (or 0-length row.names)</span></span>
+<span><span class="co">#&gt;</span></span>
+<span><span class="co">#&gt; [[3]]</span></span>
+<span><span class="co">#&gt;   nodes edges</span></span>
+<span><span class="co">#&gt; 1    NA    NA</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="acknowledgement">Acknowledgement<a class="anchor" aria-label="anchor" href="#acknowledgement"></a>
+</h2>
+<p>The glyco-regex syntax is adapted from <a href="https://github.com/BojarLab/glycowork/" class="external-link">glycowork</a>, while the API design is inspired by <a href="https://github.com/tidyverse/stringr" class="external-link">stringr</a>.</p>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="license">
@@ -200,7 +135,7 @@
 <div class="developers">
 <h2 data-toc-skip>Developers</h2>
 <ul class="list-unstyled">
-<li>First Last <br><small class="roles"> Author, maintainer </small>   </li>
+<li>Bin Fu <br><small class="roles"> Author, maintainer </small>   </li>
 </ul>
 </div>
 
@@ -219,7 +154,7 @@
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by First Last.</p>
+  <p>Developed by Bin Fu.</p>
 </div>
 
 <div class="pkgdown-footer-right">
