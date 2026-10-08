@@ -101,23 +101,24 @@ input. Direct graph inputs retain their existing vertex and edge IDs.
 
 ## Pattern language
 
-| Syntax                 | Meaning                                                 | Example                   |
-|:-----------------------|:--------------------------------------------------------|:--------------------------|
-| Residue / class        | A residue or shared glyrepr residue class               | `Gal`, `HexNAc`, `Sia`    |
-| `.`                    | Any residue                                             | `.-GlcNAc`                |
-| `-`                    | Connected path towards the reducing end                 | `Gal-GlcNAc`              |
-| Linkage                | Shorthand or full linkage constraint                    | `Galb4`, `Gal(b1-4)`      |
-| `[...]`                | Alternatives separated by a vertical bar                | See below.                |
-| `[^A]`, `[!A]`         | Negated residue                                         | `[^Fuc]-GlcNAc`           |
-| `(path)`               | Sibling branch at the next attachment residue           | `Galb4-(Fuca3)-GlcNAc`    |
-| `!linked-residue`      | Assert absence of an unconsumed branch                  | `Galb3-!GlcNAcb6-GalNAc`  |
-| `?`, `*`, `+`, `{n,m}` | Repeat bracketed units or branches                      | `[HexNAc]{2,}`            |
-| Lazy suffix `?`        | Prefer fewer repetitions                                | `Hex-[HexNAc]+?`          |
-| `^`, `$`, `%`          | Non-reducing terminus, reducing end, internal position  | `^Gal`, `GlcNAc$`, `Hex%` |
-| `(?=...)`, `(?!...)`   | Positive / negative lookahead towards reducing end      | `Gal(?=-GlcNAc)`          |
-| `(?<=...)`, `(?<!...)` | Positive / negative lookbehind towards non-reducing end | `(?<=Sia-)Gal`            |
-| `(?<name>...)`         | Named capture of a connected path                       | `(?<arm>Gal-GlcNAc)-Man`  |
-| `(?:...)`              | Non-capturing path group                                | `(?:Gal-GlcNAc)+`         |
+| Syntax                 | Meaning                                                         | Example                   |
+|:-----------------------|:----------------------------------------------------------------|:--------------------------|
+| Residue / class        | A residue or shared glyrepr residue class                       | `Gal`, `HexNAc`, `Sia`    |
+| `.`                    | Any residue                                                     | `.-GlcNAc`                |
+| `-`                    | Connected path towards the reducing end                         | `Gal-GlcNAc`              |
+| Linkage                | Shorthand or full linkage constraint                            | `Galb4`, `Gal(b1-4)`      |
+| `[...]`                | Alternatives separated by a vertical bar                        | See below.                |
+| `[^A]`, `[!A]`         | Negated residue                                                 | `[^Fuc]-GlcNAc`           |
+| `(path)`               | Sibling branch at the next attachment residue                   | `Galb4-(Fuca3)-GlcNAc`    |
+| `(!branch)`            | Assert absence of a branch, optionally with linkage constraints | `Galb4-(!Fuc)-GlcNAc`     |
+| `!linked-residue`      | Assert absence of an unconsumed branch                          | `Galb3-!GlcNAcb6-GalNAc`  |
+| `?`, `*`, `+`, `{n,m}` | Repeat bracketed units or branches                              | `[HexNAc]{2,}`            |
+| Lazy suffix `?`        | Prefer fewer repetitions                                        | `Hex-[HexNAc]+?`          |
+| `^`, `$`, `%`          | Non-reducing terminus, reducing end, internal position          | `^Gal`, `GlcNAc$`, `Hex%` |
+| `(?=...)`, `(?!...)`   | Positive / negative lookahead towards reducing end              | `Gal(?=-GlcNAc)`          |
+| `(?<=...)`, `(?<!...)` | Positive / negative lookbehind towards non-reducing end         | `(?<=Sia-)Gal`            |
+| `(?<name>...)`         | Named capture of a connected path                               | `(?<arm>Gal-GlcNAc)-Man`  |
+| `(?:...)`              | Non-capturing path group                                        | `(?:Gal-GlcNAc)+`         |
 
 For example, either galactose or mannose linked to GlcNAc:
 
@@ -143,6 +144,13 @@ contained in larger ones, and orders results by decreasing residue count
 and then starting node ID. Distinct branches can yield identical
 extracted sequences. Matches can overlap; counts are structural, not
 text-regex occurrence counts. Zero-length matches are omitted.
+
+`(!...)` always means that the specified branch is absent at the next
+attachment residue. For example, `Neu5Aca3-Galb4-(!Fuc)-GlcNAc` forbids
+any Fuc branch on GlcNAc, while `Neu5Aca3-Galb4-(!Fuca3)-GlcNAc` forbids
+only an alpha1-3 Fuc branch there. These assertions consume no residues
+and exclude nodes already used by the matched path. Other branches
+remain allowed.
 
 ## Reducing-end configuration
 

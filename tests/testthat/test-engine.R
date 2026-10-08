@@ -102,3 +102,44 @@ test_that("branch-only tails cannot yield disconnected full matches", {
   expect_equal(rex_extract_all(x, "Gal-(Fuc)")[[1]], character())
   expect_equal(rex_detect(x, "Gal-(Fuc)-GlcNAc"), TRUE)
 })
+
+test_that("parenthesized negation always asserts absence at the attachment", {
+  x <- c(
+    "Neu5Ac(a2-3)Gal(b1-4)GlcNAc",
+    "Neu5Ac(a2-3)Gal(b1-4)[Fuc(a1-3)]GlcNAc",
+    "Neu5Ac(a2-3)Gal(b1-4)[Fuc(a1-6)]GlcNAc",
+    "Neu5Ac(a2-3)Gal(b1-4)[Man(a1-6)]GlcNAc",
+    "Neu5Ac(a2-3)[Fuc(a1-2)]Gal(b1-4)GlcNAc",
+    "Neu5Ac(a2-3)Gal(b1-4)[Fuc(b1-3)]GlcNAc"
+  )
+  any_fuc <- "Neu5Aca3-Galb4-(!Fuc)-GlcNAc"
+  a3_fuc <- "Neu5Aca3-Galb4-(!Fuca3)-GlcNAc"
+  expect_equal(rex_detect(x, any_fuc), c(TRUE, FALSE, FALSE, TRUE, TRUE, FALSE))
+  expect_equal(rex_detect(x, a3_fuc), c(TRUE, FALSE, TRUE, TRUE, TRUE, TRUE))
+  expect_equal(rex_detect(x, rex_compile(any_fuc)), rex_detect(x, any_fuc))
+  expect_equal(rex_count(x, any_fuc), c(1L, 0L, 0L, 1L, 1L, 0L))
+  expect_equal(
+    rex_extract(x[4], any_fuc),
+    rex_extract(x[4], "Neu5Aca3-Galb4-GlcNAc")
+  )
+  expect_equal(
+    rex_locate(x[4], any_fuc),
+    rex_locate(x[4], "Neu5Aca3-Galb4-GlcNAc")
+  )
+  expect_equal(rex_detect("Fuc(a1-3)GlcNAc", "Fuc-(!Fuc)-GlcNAc"), TRUE)
+})
+
+test_that("absence groups also accept full linkages and branch paths", {
+  x <- c("Gal(b1-4)GlcNAc", "Gal(b1-4)[Fuc(a1-3)]GlcNAc")
+  expect_equal(rex_detect(x, "Gal-(!Fuc(a1-3))-GlcNAc"), c(TRUE, FALSE))
+  expect_equal(rex_detect(x, "(!Fuc)-GlcNAc"), c(TRUE, FALSE))
+  expect_equal(
+    rex_detect("Gal(b1-4)[Fuc(a1-2)Man(a1-6)]GlcNAc", "Gal-(!Fuc-Man)-GlcNAc"),
+    FALSE
+  )
+  expect_equal(
+    rex_detect("Gal(b1-4)[Man(a1-6)]GlcNAc", "Gal-(!Fuc-Man)-GlcNAc"),
+    TRUE
+  )
+  expect_equal(rex_detect("GlcNAc", "(!Fuc)"), FALSE)
+})

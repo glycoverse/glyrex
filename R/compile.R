@@ -13,6 +13,10 @@
 #' (or `[!Fuc]`) excludes residues. Parentheses describe a sibling branch,
 #' as in `Galb4-(Fuca3)-GlcNAc`. A negated linked residue, `!Fuca3`,
 #' asserts that such a branch is absent at the current attachment point.
+#' `(!...)` always asserts branch absence: `(!Fuc)` forbids a Fuc branch
+#' with any linkage, whereas `(!Fuca3)` forbids an alpha1-3 Fuc branch.
+#' The assertion checks unconsumed branches attached to the next residue,
+#' consumes no nodes, and can contain a multi-residue branch pattern.
 #'
 #' Bracketed groups accept `?`, `*`, `+`, `{n}`, `{n,m}`, `{n,}`, or
 #' `{,m}`. Append `?` for lazy repetition. Open bounds are limited by
@@ -131,7 +135,10 @@ rex_compile <- function(pattern) {
         kind <- "branch"
         name <- NULL
         prefix <- take("^\\?(?:<=|<!|=|!)")
-        if (!is.null(prefix)) {
+        if (peek() == "!" && is.null(prefix)) {
+          pos <<- pos + 1L
+          kind <- "absent"
+        } else if (!is.null(prefix)) {
           kind <- "look"
         } else if (!is.null(take("^\\?:"))) {
           kind <- "group"
