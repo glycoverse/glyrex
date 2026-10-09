@@ -123,6 +123,18 @@
 #' Gal path exists. Paths inside lookbehind are still written towards the
 #' reducing end, just like the rest of the pattern.
 #'
+#' Negative lookbehind and branch absence are equivalent at the start of a
+#' pattern: `(?<!Gal-)GlcNAc` and `(!Gal-)GlcNAc` both match only GlcNAc
+#' with no directly attached Gal on its non-reducing side, regardless of
+#' linkage. Neither assertion adds residues to the match.
+#'
+#' After a preceding path, the two assertions differ. Negative lookbehind
+#' checks all attached paths, including residues already matched, whereas
+#' branch absence checks only paths not already used by the preceding pattern.
+#' For example, on `Gal(b1-4)GlcNAc`, `Gal-(!Gal-)GlcNAc` matches because
+#' there is no additional Gal branch. `Gal-(?<!Gal-)GlcNAc` does not match
+#' because the already matched Gal still counts for negative lookbehind.
+#'
 #' Lookaround, branch-absence checks, and anchors cannot be repeated.
 #' Assertions alone do not produce a match because every returned match
 #' must contain at least one residue.
