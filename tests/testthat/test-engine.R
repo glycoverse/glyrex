@@ -4,8 +4,8 @@ test_that("paths and branches match graph topology", {
     rex_detect(
       x,
       c(
-        "Galb4-(Fuca3)-GlcNAc",
-        "Fuca3-(Galb4)-GlcNAc",
+        "Galb4-(Fuca3-)GlcNAc",
+        "Fuca3-(Galb4-)GlcNAc",
         "Gal-Fuc",
         "Galb3-GlcNAc"
       )
@@ -16,8 +16,8 @@ test_that("paths and branches match graph topology", {
   expect_equal(rex_count(x, "[Gal|Fuc]"), 2L)
   expect_equal(rex_count(x, "Hex-HexNAc"), 1L)
   expect_equal(rex_count(x, "[^Fuc]"), 2L)
-  expect_equal(rex_locate(x, "Galb4-(Fuca3)-GlcNAc")$nodes[[1]], 1:3)
-  expect_equal(length(rex_locate(x, "Galb4-(Fuca3)-GlcNAc")$edges[[1]]), 2L)
+  expect_equal(rex_locate(x, "Galb4-(Fuca3-)GlcNAc")$nodes[[1]], 1:3)
+  expect_equal(length(rex_locate(x, "Galb4-(Fuca3-)GlcNAc")$edges[[1]]), 2L)
 })
 
 test_that("reducing-end anomers and extracted fragment anomers are preserved", {
@@ -97,9 +97,9 @@ test_that("locations reference the supplied graph without renumbering", {
 
 test_that("branch-only tails cannot yield disconnected full matches", {
   x <- "Gal(b1-4)[Fuc(a1-3)]GlcNAc"
-  expect_equal(rex_detect(x, "Gal-(Fuc)"), FALSE)
-  expect_equal(rex_extract_all(x, "Gal-(Fuc)")[[1]], character())
-  expect_equal(rex_detect(x, "Gal-(Fuc)-GlcNAc"), TRUE)
+  expect_equal(rex_detect(x, "Gal-(Fuc-)"), FALSE)
+  expect_equal(rex_extract_all(x, "Gal-(Fuc-)")[[1]], character())
+  expect_equal(rex_detect(x, "Gal-(Fuc-)GlcNAc"), TRUE)
 })
 
 test_that("parenthesized negation always asserts absence at the attachment", {

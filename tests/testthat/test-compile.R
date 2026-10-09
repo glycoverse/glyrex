@@ -1,10 +1,10 @@
 test_that("compilation is reusable and captures have explicit syntax", {
-  p <- rex_compile("(?<arm>Galb4)-([Fuca3]){1}-GlcNAc")
+  p <- rex_compile("(?<arm>Galb4)-([Fuca3]-){1}GlcNAc")
   expect_s3_class(p, "glyrex_pattern")
   expect_identical(rex_compile(p), p)
   expect_equal(p$captures, "arm")
   expect_output(print(p), "<glyrex_pattern>")
-  expect_equal(rex_compile("(Fuc)-GlcNAc")$captures, character())
+  expect_equal(rex_compile("(Fuc-)GlcNAc")$captures, character())
 })
 
 test_that("malformed patterns fail at compilation", {
@@ -54,4 +54,26 @@ test_that("patterns reject IUPAC-style linkages", {
     rex_detect("Gal(b1-4)GlcNAc", "Gal(b1-4)GlcNAc")
   )
   expect_equal(rex_detect("Gal(b1-4)GlcNAc", "Galb4-GlcNAc"), TRUE)
+})
+
+
+test_that("branches require the attachment dash inside parentheses", {
+  expect_snapshot(error = TRUE, rex_compile("Galb4-(Fuca3)-GlcNAc"))
+  expect_snapshot(error = TRUE, rex_compile("Galb4-(Fuca3)GlcNAc"))
+  expect_snapshot(error = TRUE, rex_compile("Galb4-(Fuca3-)-GlcNAc"))
+  expect_snapshot(error = TRUE, rex_compile("Galb4-(Fuca3-){1}-GlcNAc"))
+  x <- c(
+    "Gal(b1-4)[Fuc(a1-3)]GlcNAc",
+    "Gal(b1-4)GlcNAc",
+    "Gal(b1-4)[Fuc(a1-6)]GlcNAc"
+  )
+  expect_equal(rex_detect(x, "Galb4-(Fuca3-)GlcNAc"), c(TRUE, FALSE, FALSE))
+  expect_equal(rex_detect(x, "Galb4-(Fuca3-)?GlcNAc"), c(TRUE, TRUE, TRUE))
+  expect_equal(
+    rex_detect(
+      "Gal(b1-4)[Gal(b1-4)[Fuc(a1-3)]GlcNAc(b1-6)]GlcNAc",
+      "Galb4-(Galb4-(Fuca3-)GlcNAcb6-)GlcNAc"
+    ),
+    TRUE
+  )
 })

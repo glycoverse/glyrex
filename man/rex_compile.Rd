@@ -68,8 +68,10 @@ with \code{4} but not \code{6}.
 \subsection{Requiring or excluding branches}{
 
 Ordinary parentheses describe a sibling branch attached to the next
-residue in the main path. In \code{Galb4-(Fuca3)-GlcNAc}, both Gal and Fuc
-attach to the same GlcNAc: Gal by beta1-4 and Fuc by alpha1-3. The Fuc
+residue in the main path. The attachment dash must be inside the
+parentheses, with no dash after the branch group. In
+\verb{Galb4-(Fuca3-)GlcNAc}, both Gal and Fuc attach to the same GlcNAc:
+Gal by beta1-4 and Fuc by alpha1-3. The Fuc
 is not inserted between Gal and GlcNAc. Required branch residues are part
 of the match. Additional branches are allowed unless explicitly excluded.
 Pattern parentheses serve a different purpose from the square brackets
@@ -159,7 +161,7 @@ overlapping matches and matches contained within larger ones.
 }
 }
 \examples{
-p <- rex_compile("Galb4-(Fuca3)-GlcNAc")
+p <- rex_compile("Galb4-(Fuca3-)GlcNAc")
 rex_detect("Gal(b1-4)[Fuc(a1-3)]GlcNAc", p)
 rex_detect(c("GlcNAc(a1-", "GlcNAc(b1-"), "GlcNAca$")
 }

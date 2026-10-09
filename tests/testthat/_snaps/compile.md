@@ -182,3 +182,35 @@
       Error:
       ! Invalid pattern at character 4: IUPAC-style linkages are not supported in patterns; use glyco-regex syntax such as 'Galb4-GlcNAc' or 'GlcNAca$'.
 
+# branches require the attachment dash inside parentheses
+
+    Code
+      rex_compile("Galb4-(Fuca3)-GlcNAc")
+    Condition
+      Error:
+      ! Invalid pattern at character 13: Branches require a trailing attachment dash: use (branch-)residue.
+
+---
+
+    Code
+      rex_compile("Galb4-(Fuca3)GlcNAc")
+    Condition
+      Error:
+      ! Invalid pattern at character 13: Branches require a trailing attachment dash: use (branch-)residue.
+
+---
+
+    Code
+      rex_compile("Galb4-(Fuca3-)-GlcNAc")
+    Condition
+      Error:
+      ! Invalid pattern at character 15: Put the branch attachment dash inside parentheses: use (branch-)residue.
+
+---
+
+    Code
+      rex_compile("Galb4-(Fuca3-){1}-GlcNAc")
+    Condition
+      Error:
+      ! Invalid pattern at character 18: Put the branch attachment dash inside parentheses: use (branch-)residue.
+

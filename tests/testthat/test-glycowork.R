@@ -40,7 +40,7 @@ test_that("glycowork reference cases retain structural semantics", {
 })
 
 test_that("lookbehinds constrain individual branches", {
-  p <- "(?<!HexNAc-)Mana3-(?<!HexNAc-)([Mana6]){1}-Manb4-GlcNAcb4-GlcNAc"
+  p <- "(?<!HexNAc-)Mana3-(?<!HexNAc-)([Mana6]-){1}Manb4-GlcNAcb4-GlcNAc"
   x <- c(
     "Man(a1-2)Man(a1-3)[Man(a1-6)]Man(b1-4)GlcNAc(b1-4)GlcNAc",
     "GlcNAc(b1-2)Man(a1-3)[Man(a1-6)]Man(b1-4)GlcNAc(b1-4)GlcNAc",
@@ -58,7 +58,7 @@ test_that("negated linked groups assert absence without consuming residues", {
 })
 
 test_that("optional sialic acid and sibling branches compose with lookahead", {
-  p <- "r[Sia]{,1}-Monosaccharide-([dHex]){,1}-Monosaccharide(?=-Mana6-Monosaccharide)"
+  p <- "r[Sia]{,1}-Monosaccharide-([dHex]-){,1}Monosaccharide(?=-Mana6-Monosaccharide)"
   x <- "GalNAc(b1-4)GlcNAc(b1-2)Man(a1-3)[Neu5Gc(a2-6)GalNAc(b1-4)[Fuc(a1-3)]GlcNAc(b1-2)Man(a1-6)]Man(b1-4)GlcNAc(b1-4)GlcNAc"
   expected <- glyrepr::as_glycan_structure(
     "Neu5Gc(a2-6)GalNAc(b1-4)[Fuc(a1-3)]GlcNAc(b1-"

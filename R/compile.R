@@ -55,8 +55,10 @@
 #' ## Requiring or excluding branches
 #'
 #' Ordinary parentheses describe a sibling branch attached to the next
-#' residue in the main path. In `Galb4-(Fuca3)-GlcNAc`, both Gal and Fuc
-#' attach to the same GlcNAc: Gal by beta1-4 and Fuc by alpha1-3. The Fuc
+#' residue in the main path. The attachment dash must be inside the
+#' parentheses, with no dash after the branch group. In
+#' `Galb4-(Fuca3-)GlcNAc`, both Gal and Fuc attach to the same GlcNAc:
+#' Gal by beta1-4 and Fuc by alpha1-3. The Fuc
 #' is not inserted between Gal and GlcNAc. Required branch residues are part
 #' of the match. Additional branches are allowed unless explicitly excluded.
 #' Pattern parentheses serve a different purpose from the square brackets
@@ -140,7 +142,7 @@
 #' overlapping matches and matches contained within larger ones.
 #'
 #' @examples
-#' p <- rex_compile("Galb4-(Fuca3)-GlcNAc")
+#' p <- rex_compile("Galb4-(Fuca3-)GlcNAc")
 #' rex_detect("Gal(b1-4)[Fuc(a1-3)]GlcNAc", p)
 #' rex_detect(c("GlcNAc(a1-", "GlcNAc(b1-"), "GlcNAca$")
 #' @export
@@ -245,7 +247,7 @@ rex_compile <- function(pattern) {
         } else if (peek() == "?") {
           fail("Unknown group syntax.")
         }
-        alternatives <- parse_alts(")", branch_absence = kind == "absent")
+        alternatives <- parse_alts(")", attachment = kind)
         term <- node(
           kind,
           alternatives = alternatives,
@@ -386,6 +388,15 @@ rex_compile <- function(pattern) {
           lazy = lazy
         )
       }
+      if (
+        (term$kind == "branch" ||
+          (term$kind == "repeat" && term$child$kind == "branch")) &&
+          peek() == "-"
+      ) {
+        fail(
+          "Put the branch attachment dash inside parentheses: use (branch-)residue."
+        )
+      }
       # A lookbehind immediately before a branch constrains that branch,
       # not the shared attachment residue.
       branch <- if (term$kind == "repeat") term$child else term
@@ -409,7 +420,7 @@ rex_compile <- function(pattern) {
     }
     out
   }
-  parse_alts <- function(close, branch_absence = FALSE) {
+  parse_alts <- function(close, attachment = "") {
     parse_alternative <- function() {
       if (close == "]" && peek() == "!") {
         fail(
@@ -417,9 +428,17 @@ rex_compile <- function(pattern) {
         )
       }
       alternative <- parse_seq(close)
-      if (branch_absence && substr(pattern, pos - 1L, pos - 1L) != "-") {
+      if (
+        attachment %in%
+          c("branch", "absent") &&
+          substr(pattern, pos - 1L, pos - 1L) != "-"
+      ) {
         fail(
-          "Branch absence requires a trailing attachment dash: use (!branch-)residue."
+          if (attachment == "absent") {
+            "Branch absence requires a trailing attachment dash: use (!branch-)residue."
+          } else {
+            "Branches require a trailing attachment dash: use (branch-)residue."
+          }
         )
       }
       alternative

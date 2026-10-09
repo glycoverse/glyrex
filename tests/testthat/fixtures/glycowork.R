@@ -1,19 +1,19 @@
 # Upstream negation spellings are adapted to [^Gal] and (!Neu5Ac-).
 list(
   list(
-    pattern = "Hex-HexNAc-([Hex|Fuc])?-HexNAc",
+    pattern = "Hex-HexNAc-([Hex|Fuc]-)?HexNAc",
     glycan = "GalNAc(b1-4)GlcNAc(b1-2)Man(a1-3)[Neu5Gc(a2-6)GalNAc(b1-4)[Fuc(a1-3)]GlcNAc(b1-2)Man(a1-6)]Man(b1-4)GlcNAc(b1-4)[Fuc(a1-6)]GlcNAc",
     expected = list("Man(b1-4)GlcNAc(b1-4)[Fuc(a1-6)]GlcNAc"),
     line = 3626L
   ),
   list(
-    pattern = "Hex-HexNAc-([Hex|Fuc])*-HexNAc",
+    pattern = "Hex-HexNAc-([Hex|Fuc]-)*HexNAc",
     glycan = "GalNAc(b1-4)GlcNAc(b1-2)Man(a1-3)[Neu5Gc(a2-6)GalNAc(b1-4)[Fuc(a1-3)]GlcNAc(b1-2)Man(a1-6)]Man(b1-4)GlcNAc(b1-4)[Fuc(a1-6)]GlcNAc",
     expected = list("Man(b1-4)GlcNAc(b1-4)[Fuc(a1-6)]GlcNAc"),
     line = 3627L
   ),
   list(
-    pattern = ".-.-([Hex|Fuc])+-.",
+    pattern = ".-.-([Hex|Fuc]-)+.",
     glycan = "GalNAc(b1-4)GlcNAc(b1-2)Man(a1-3)[Neu5Gc(a2-6)GalNAc(b1-4)[Fuc(a1-3)]GlcNAc(b1-2)Man(a1-6)]Man(b1-4)GlcNAc(b1-4)[Fuc(a1-6)]GlcNAc",
     expected = list(
       "Neu5Gc(a2-6)GalNAc(b1-4)[Fuc(a1-3)]GlcNAc",
@@ -24,13 +24,13 @@ list(
     line = 3628L
   ),
   list(
-    pattern = "Fuc-Galb3/4-([Hex|Fuc])*-HexNAc",
+    pattern = "Fuc-Galb3/4-([Hex|Fuc]-)*HexNAc",
     glycan = "Fuc(a1-2)Gal(b1-?)[Fuc(a1-?)]GlcNAc(b1-6)[Gal(b1-3)]GalNAc",
     expected = list("Fuc(a1-2)Gal(b1-?)[Fuc(a1-?)]GlcNAc"),
     line = 3629L
   ),
   list(
-    pattern = "Fuc-([^Gal])+-GlcNAc",
+    pattern = "Fuc-([^Gal]-)+GlcNAc",
     glycan = "Fuc(a1-3)[GlcNAc(b1-4)]GlcNAc",
     expected = list(
       "Fuc(a1-3)[GlcNAc(b1-4)]GlcNAc"
@@ -38,7 +38,7 @@ list(
     line = 3630L
   ),
   list(
-    pattern = "Fuc-([^Gal])+-GlcNAc",
+    pattern = "Fuc-([^Gal]-)+GlcNAc",
     glycan = "Neu5Ac(a2-3)Gal(b1-4)[Fuc(a1-3)]GlcNAc(b1-2)Man(a1-3)[Fuc(a1-3)[Gal(b1-4)]GlcNAc(b1-2)Man(a1-6)]Man(b1-4)GlcNAc(b1-4)GlcNAc",
     expected = list(),
     line = 3631L
@@ -56,31 +56,31 @@ list(
     line = 3633L
   ),
   list(
-    pattern = "Hex-HexNAc-([Hex|Fuc]){1,2}-HexNAc(?=-HexNAc)",
+    pattern = "Hex-HexNAc-([Hex|Fuc]-){1,2}HexNAc(?=-HexNAc)",
     glycan = "Neu5Ac(a2-3)Gal(b1-4)[Fuc(a1-3)]GlcNAc(b1-2)Man(a1-3)[Fuc(a1-3)[Gal(b1-4)]GlcNAc(b1-2)Man(a1-6)]Man(b1-4)GlcNAc(b1-4)[Fuc(a1-6)]GlcNAc(b1-4)GlcNAc",
     expected = list("Man(b1-4)GlcNAc(b1-4)[Fuc(a1-6)]GlcNAc"),
     line = 3634L
   ),
   list(
-    pattern = "Hex-HexNAc-([Hex|Fuc]){1,2}-HexNAc(?=-HexNAc)",
+    pattern = "Hex-HexNAc-([Hex|Fuc]-){1,2}HexNAc(?=-HexNAc)",
     glycan = "Neu5Ac(a2-3)Gal(b1-4)[Fuc(a1-3)]GlcNAc(b1-2)Man(a1-3)[Fuc(a1-3)[Gal(b1-4)]GlcNAc(b1-2)Man(a1-6)]Man(b1-4)GlcNAc(b1-4)[Fuc(a1-3)][Fuc(a1-6)]GlcNAc(b1-4)GlcNAc",
     expected = list("Man(b1-4)GlcNAc(b1-4)[Fuc(a1-3)][Fuc(a1-6)]GlcNAc"),
     line = 3635L
   ),
   list(
-    pattern = "Hex-HexNAc-([Hex|Fuc]){1,2}-HexNAc(?!-HexNAc)",
+    pattern = "Hex-HexNAc-([Hex|Fuc]-){1,2}HexNAc(?!-HexNAc)",
     glycan = "Neu5Ac(a2-3)Gal(b1-4)[Fuc(a1-3)]GlcNAc(b1-2)Man(a1-3)[Fuc(a1-3)[Gal(b1-4)]GlcNAc(b1-2)Man(a1-6)]Man(b1-4)GlcNAc(b1-4)[Fuc(a1-3)][Fuc(a1-6)]GlcNAc",
     expected = list("Man(b1-4)GlcNAc(b1-4)[Fuc(a1-3)][Fuc(a1-6)]GlcNAc"),
     line = 3636L
   ),
   list(
-    pattern = "(?<=Xyl-)Hex-HexNAc-([Hex|Fuc]){1,2}-HexNAc",
+    pattern = "(?<=Xyl-)Hex-HexNAc-([Hex|Fuc]-){1,2}HexNAc",
     glycan = "Neu5Ac(a2-3)Gal(b1-4)[Fuc(a1-3)]GlcNAc(b1-2)Man(a1-3)[Fuc(a1-3)[Gal(b1-4)]GlcNAc(b1-2)Man(a1-6)][Xyl(b1-2)]Man(b1-4)GlcNAc(b1-4)[Fuc(a1-3)]GlcNAc",
     expected = list("Man(b1-4)GlcNAc(b1-4)[Fuc(a1-3)]GlcNAc"),
     line = 3637L
   ),
   list(
-    pattern = "(?<!Xyl-)Hex-HexNAc-([Hex|Fuc]){1,2}-HexNAc",
+    pattern = "(?<!Xyl-)Hex-HexNAc-([Hex|Fuc]-){1,2}HexNAc",
     glycan = "Neu5Ac(a2-3)Gal(b1-4)[Fuc(a1-3)]GlcNAc(b1-2)Man(a1-3)[Fuc(a1-3)[Gal(b1-4)]GlcNAc(b1-2)Man(a1-6)]Man(b1-4)GlcNAc(b1-4)[Fuc(a1-3)]GlcNAc",
     expected = list("Man(b1-4)GlcNAc(b1-4)[Fuc(a1-3)]GlcNAc"),
     line = 3638L
@@ -216,7 +216,7 @@ list(
     line = 3666L
   ),
   list(
-    pattern = "Fuc-([^Gal])+-GlcNAc",
+    pattern = "Fuc-([^Gal]-)+GlcNAc",
     glycan = "Neu5Ac(a2-3)Gal(b1-4)[Fuc(a1-3)]GlcNAc(b1-2)Man(a1-3)[Fuc(a1-3)[Fuc(a1-2)Gal(b1-4)]GlcNAc(b1-2)Man(a1-6)]Man(b1-4)GlcNAc(b1-4)GlcNAc",
     expected = list(),
     line = 3672L
@@ -228,43 +228,43 @@ list(
     line = 3673L
   ),
   list(
-    pattern = "Hex-HexNAc-([Hex|Fuc]){1,2}-HexNAc(?=-HexNAc)",
+    pattern = "Hex-HexNAc-([Hex|Fuc]-){1,2}HexNAc(?=-HexNAc)",
     glycan = "Neu5Ac(a2-3)Gal(b1-4)[Fuc(a1-3)]GlcNAc(b1-2)Man(a1-3)[Fuc(a1-3)[Gal(b1-4)]GlcNAc(b1-2)Man(a1-6)]Man(b1-4)GlcNAc(b1-4)[Fuc(a1-6)]GlcNAc",
     expected = list(),
     line = 3674L
   ),
   list(
-    pattern = "Hex-HexNAc-([Hex|Fuc]){1,2}-HexNAc(?!-HexNAc)",
+    pattern = "Hex-HexNAc-([Hex|Fuc]-){1,2}HexNAc(?!-HexNAc)",
     glycan = "Neu5Ac(a2-3)Gal(b1-4)[Fuc(a1-3)]GlcNAc(b1-2)Man(a1-3)[Fuc(a1-3)[Gal(b1-4)]GlcNAc(b1-2)Man(a1-6)]Man(b1-4)GlcNAc(b1-4)[Fuc(a1-3)][Fuc(a1-6)]GlcNAc(b1-4)GlcNAc",
     expected = list(),
     line = 3675L
   ),
   list(
-    pattern = "(?<=Xyl-)Hex-HexNAc-([Hex|Fuc]){1,2}-HexNAc",
+    pattern = "(?<=Xyl-)Hex-HexNAc-([Hex|Fuc]-){1,2}HexNAc",
     glycan = "Neu5Ac(a2-3)Gal(b1-4)[Fuc(a1-3)]GlcNAc(b1-2)Man(a1-3)[Fuc(a1-3)[Gal(b1-4)]GlcNAc(b1-2)Man(a1-6)]Man(b1-4)GlcNAc(b1-4)[Fuc(a1-3)]GlcNAc",
     expected = list(),
     line = 3676L
   ),
   list(
-    pattern = "(?<!Xyl-)Hex-HexNAc-([Hex|Fuc]){1,2}-HexNAc",
+    pattern = "(?<!Xyl-)Hex-HexNAc-([Hex|Fuc]-){1,2}HexNAc",
     glycan = "Neu5Ac(a2-3)Gal(b1-4)[Fuc(a1-3)]GlcNAc(b1-2)Man(a1-3)[Fuc(a1-3)[Gal(b1-4)]GlcNAc(b1-2)Man(a1-6)][Xyl(b1-2)]Man(b1-4)GlcNAc(b1-4)[Fuc(a1-3)]GlcNAc",
     expected = list(),
     line = 3677L
   ),
   list(
-    pattern = "Fuca3-([Galb4]){1}-GlcNAcb?",
+    pattern = "Fuca3-([Galb4]-){1}GlcNAcb?",
     glycan = "Neu5Ac(a2-3)Gal(b1-4)[Fuc(a1-3)]GlcNAc(b1-2)Man(a1-3)[Man(a1-6)]Man(b1-4)GlcNAc(b1-4)GlcNAc",
     expected = list("Fuc(a1-3)[Gal(b1-4)]GlcNAc"),
     line = 3749L
   ),
   list(
-    pattern = "Xylb2-([Mana3]){1}-([Mana6]){1}-Manb4-GlcNAcb4-GlcNAc",
+    pattern = "Xylb2-([Mana3]-){1}([Mana6]-){1}Manb4-GlcNAcb4-GlcNAc",
     glycan = "Xyl(b1-2)[Man(a1-3)][Man(a1-6)]Man(b1-4)GlcNAc(b1-4)GlcNAc",
     expected = TRUE,
     line = 3762L
   ),
   list(
-    pattern = "Galb3-([Siaa6]){1}-GalNAc",
+    pattern = "Galb3-([Siaa6]-){1}GalNAc",
     glycan = "Gal(b1-3)[Neu5Ac(a2-6)]GalNAc",
     expected = list(
       "Gal(b1-3)[Neu5Ac(a2-6)]GalNAc"
@@ -272,19 +272,19 @@ list(
     line = 3765L
   ),
   list(
-    pattern = "Fuc-([^Gal])+-GlcNAc",
+    pattern = "Fuc-([^Gal]-)+GlcNAc",
     glycan = "Fuc(a1-3)[GlcNAc(b1-4)]GlcNAc",
     expected = list("Fuc(a1-3)[GlcNAc(b1-4)]GlcNAc"),
     line = 3786L
   ),
   list(
-    pattern = "Fuc-([^Gal])+-GlcNAc",
+    pattern = "Fuc-([^Gal]-)+GlcNAc",
     glycan = "Fuc(a1-3)[Gal(b1-4)]GlcNAc",
     expected = list(),
     line = 3787L
   ),
   list(
-    pattern = "Fuc-([^Gal])+-GlcNAc",
+    pattern = "Fuc-([^Gal]-)+GlcNAc",
     glycan = "Fuc(a1-3)[GlcNAc(b1-4)]GlcNAc",
     expected = list(
       "Fuc(a1-3)[GlcNAc(b1-4)]GlcNAc"
