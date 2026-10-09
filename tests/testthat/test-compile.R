@@ -41,3 +41,17 @@ test_that("only explicit branch absence groups are accepted", {
   expect_equal(rex_detect("GlcNAc", "[^Fuca3]-GlcNAc"), FALSE)
   expect_equal(rex_detect("Fuc(a1-3)GlcNAc", "[^Fuca3]-GlcNAc"), FALSE)
 })
+
+test_that("patterns reject IUPAC-style linkages", {
+  expect_snapshot(error = TRUE, rex_compile("Gal(b1-4)GlcNAc"))
+  expect_snapshot(error = TRUE, rex_compile("Gal(b1-4)-GlcNAc"))
+  expect_snapshot(error = TRUE, rex_compile("GlcNAc(a1-"))
+  expect_snapshot(error = TRUE, rex_compile("[GlcNAc(b1-)]"))
+  expect_snapshot(error = TRUE, rex_compile("Gal-(!Fuc(a1-3)-)GlcNAc"))
+  expect_snapshot(error = TRUE, rex_compile("[Gal(?1-3/4)]-GlcNAc"))
+  expect_snapshot(
+    error = TRUE,
+    rex_detect("Gal(b1-4)GlcNAc", "Gal(b1-4)GlcNAc")
+  )
+  expect_equal(rex_detect("Gal(b1-4)GlcNAc", "Galb4-GlcNAc"), TRUE)
+})

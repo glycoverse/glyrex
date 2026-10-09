@@ -126,3 +126,59 @@
       Error:
       ! Invalid pattern at character 12: Branch absence requires a trailing attachment dash: use (!branch-)residue.
 
+# patterns reject IUPAC-style linkages
+
+    Code
+      rex_compile("Gal(b1-4)GlcNAc")
+    Condition
+      Error:
+      ! Invalid pattern at character 4: IUPAC-style linkages are not supported in patterns; use glyco-regex syntax such as 'Galb4-GlcNAc' or 'GlcNAca$'.
+
+---
+
+    Code
+      rex_compile("Gal(b1-4)-GlcNAc")
+    Condition
+      Error:
+      ! Invalid pattern at character 4: IUPAC-style linkages are not supported in patterns; use glyco-regex syntax such as 'Galb4-GlcNAc' or 'GlcNAca$'.
+
+---
+
+    Code
+      rex_compile("GlcNAc(a1-")
+    Condition
+      Error:
+      ! Invalid pattern at character 7: IUPAC-style linkages are not supported in patterns; use glyco-regex syntax such as 'Galb4-GlcNAc' or 'GlcNAca$'.
+
+---
+
+    Code
+      rex_compile("[GlcNAc(b1-)]")
+    Condition
+      Error:
+      ! Invalid pattern at character 8: IUPAC-style linkages are not supported in patterns; use glyco-regex syntax such as 'Galb4-GlcNAc' or 'GlcNAca$'.
+
+---
+
+    Code
+      rex_compile("Gal-(!Fuc(a1-3)-)GlcNAc")
+    Condition
+      Error:
+      ! Invalid pattern at character 10: IUPAC-style linkages are not supported in patterns; use glyco-regex syntax such as 'Galb4-GlcNAc' or 'GlcNAca$'.
+
+---
+
+    Code
+      rex_compile("[Gal(?1-3/4)]-GlcNAc")
+    Condition
+      Error:
+      ! Invalid pattern at character 5: IUPAC-style linkages are not supported in patterns; use glyco-regex syntax such as 'Galb4-GlcNAc' or 'GlcNAca$'.
+
+---
+
+    Code
+      rex_detect("Gal(b1-4)GlcNAc", "Gal(b1-4)GlcNAc")
+    Condition
+      Error:
+      ! Invalid pattern at character 4: IUPAC-style linkages are not supported in patterns; use glyco-regex syntax such as 'Galb4-GlcNAc' or 'GlcNAca$'.
+

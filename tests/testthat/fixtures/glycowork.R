@@ -264,7 +264,7 @@ list(
     line = 3762L
   ),
   list(
-    pattern = "Galb3-([Sia(a2-6)]){1}-GalNAc",
+    pattern = "Galb3-([Siaa6]){1}-GalNAc",
     glycan = "Gal(b1-3)[Neu5Ac(a2-6)]GalNAc",
     expected = list(
       "Gal(b1-3)[Neu5Ac(a2-6)]GalNAc"

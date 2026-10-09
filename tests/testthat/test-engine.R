@@ -24,8 +24,7 @@ test_that("reducing-end anomers and extracted fragment anomers are preserved", {
   x <- c("Gal(b1-4)GlcNAc(a1-", "Gal(b1-4)GlcNAc(b1-", "Gal(b1-4)GlcNAc(?1-")
   expect_equal(rex_detect(x, "GlcNAc$"), rep(TRUE, 3))
   expect_equal(rex_detect(x, "GlcNAca$"), c(TRUE, FALSE, TRUE))
-  expect_equal(rex_detect(x, "GlcNAc(a1-"), c(TRUE, FALSE, TRUE))
-  expect_equal(rex_detect(x, "GlcNAc(b1-)"), c(FALSE, TRUE, TRUE))
+  expect_equal(rex_detect(x, "GlcNAcb$"), c(FALSE, TRUE, TRUE))
   expect_equal(rex_detect(x, "GlcNAca4$"), rep(FALSE, 3))
   expect_equal(rex_extract(x, "Gal"), rep("Gal(b1-", 3))
   expect_equal(
@@ -35,7 +34,7 @@ test_that("reducing-end anomers and extracted fragment anomers are preserved", {
   expect_equal(
     rex_detect(
       "Neu5Ac(a2-3)Gal",
-      c("Neu5Aca3-Gal", "Neu5Ac(a1-3)-Gal", "Sia-Gal")
+      c("Neu5Aca3-Gal", "Neu5Aca6-Gal", "Sia-Gal")
     ),
     c(TRUE, FALSE, TRUE)
   )
@@ -129,9 +128,9 @@ test_that("parenthesized negation always asserts absence at the attachment", {
   expect_equal(rex_detect("Fuc(a1-3)GlcNAc", "Fuc-(!Fuc-)GlcNAc"), TRUE)
 })
 
-test_that("absence groups also accept full linkages and branch paths", {
+test_that("absence groups accept linkage suffixes and branch paths", {
   x <- c("Gal(b1-4)GlcNAc", "Gal(b1-4)[Fuc(a1-3)]GlcNAc")
-  expect_equal(rex_detect(x, "Gal-(!Fuc(a1-3)-)GlcNAc"), c(TRUE, FALSE))
+  expect_equal(rex_detect(x, "Gal-(!Fuca3-)GlcNAc"), c(TRUE, FALSE))
   expect_equal(rex_detect(x, "(!Fuc-)GlcNAc"), c(TRUE, FALSE))
   expect_equal(
     rex_detect("Gal(b1-4)[Fuc(a1-2)Man(a1-6)]GlcNAc", "Gal-(!Fuc-Man-)GlcNAc"),

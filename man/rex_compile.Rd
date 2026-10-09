@@ -44,10 +44,10 @@ each describe a single residue; \verb{[^Fuc|Xyl]} excludes both Fuc and Xyl.
 
 A linkage belongs to the residue on its non-reducing side. For example,
 \code{Galb4-GlcNAc} requires Gal to be attached to GlcNAc by a beta1-4 linkage.
-The equivalent IUPAC form is \code{Gal(b1-4)-GlcNAc}: \code{b} is the anomer,
-\code{1} the donor position on Gal, and \code{4} the acceptor position on GlcNAc.
-Shorthand such as \code{Galb4} assumes donor position 1; for Neu5Ac, Neu5Gc,
-Kdn, and \code{Sia}, shorthand assumes donor position 2.
+Use glyco-regex linkage suffixes such as \code{Galb4}; IUPAC-style
+linkages such as \code{Gal(b1-4)} are not supported in patterns.
+The suffix specifies the anomer and acceptor position. The donor position
+is 1, or 2 for Neu5Ac, Neu5Gc, Kdn, and \code{Sia}.
 
 Omitted linkage fields impose no constraint. Thus \code{Gal-GlcNAc} does not
 specify a linkage, and \code{GlcNAca} specifies only the alpha anomer, either
@@ -56,9 +56,6 @@ position, as in \code{GlcNAca4}, requires an outgoing glycosidic linkage towards
 the reducing end and cannot match the reducing-end residue itself.
 
 To require reducing-end GlcNAc with an alpha anomer, use \verb{GlcNAca$}.
-The glyrepr notation \verb{GlcNAc(a1-} additionally specifies anomeric position
-1 and explicitly requires the reducing end. Its closed form,
-\verb{GlcNAc(a1-)}, can also be used inside groups.
 
 Unknown linkage fields (\verb{?}) act as wildcards in either the pattern or
 the input glycan, following glycowork. A specified linkage can therefore

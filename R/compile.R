@@ -32,10 +32,10 @@
 #'
 #' A linkage belongs to the residue on its non-reducing side. For example,
 #' `Galb4-GlcNAc` requires Gal to be attached to GlcNAc by a beta1-4 linkage.
-#' The equivalent IUPAC form is `Gal(b1-4)-GlcNAc`: `b` is the anomer,
-#' `1` the donor position on Gal, and `4` the acceptor position on GlcNAc.
-#' Shorthand such as `Galb4` assumes donor position 1; for Neu5Ac, Neu5Gc,
-#' Kdn, and `Sia`, shorthand assumes donor position 2.
+#' Use glyco-regex linkage suffixes such as `Galb4`; IUPAC-style
+#' linkages such as `Gal(b1-4)` are not supported in patterns.
+#' The suffix specifies the anomer and acceptor position. The donor position
+#' is 1, or 2 for Neu5Ac, Neu5Gc, Kdn, and `Sia`.
 #'
 #' Omitted linkage fields impose no constraint. Thus `Gal-GlcNAc` does not
 #' specify a linkage, and `GlcNAca` specifies only the alpha anomer, either
@@ -44,9 +44,6 @@
 #' the reducing end and cannot match the reducing-end residue itself.
 #'
 #' To require reducing-end GlcNAc with an alpha anomer, use `GlcNAca$`.
-#' The glyrepr notation `GlcNAc(a1-` additionally specifies anomeric position
-#' 1 and explicitly requires the reducing end. Its closed form,
-#' `GlcNAc(a1-)`, can also be used inside groups.
 #'
 #' Unknown linkage fields (`?`) act as wildcards in either the pattern or
 #' the input glycan, following glycowork. A specified linkage can therefore
@@ -297,21 +294,12 @@ rex_compile <- function(pattern) {
           pos <<- pos + 1L
           acceptor <- "?"
         }
-        link <- take("^\\([ab?](?:[0-9]+|\\?)-(?:[0-9]+(?:/[0-9]+)*|\\?)?\\)")
-        if (is.null(link)) {
-          link <- take("^\\([ab?](?:[0-9]+|\\?)-$")
+        if (grepl("^\\([ab?](?:[0-9]+|\\?)-", tail(), perl = TRUE)) {
+          fail(
+            "IUPAC-style linkages are not supported in patterns; use glyco-regex syntax such as 'Galb4-GlcNAc' or 'GlcNAca$'."
+          )
         }
-        if (!is.null(link)) {
-          fields <- regmatches(
-            link,
-            regexec("^\\(([ab?])([0-9]+|\\?)-([^)]*)", link, perl = TRUE)
-          )[[1L]]
-          anomer <- fields[2L]
-          donor <- fields[3L]
-          acceptor <- fields[4L]
-          root <- !nzchar(acceptor)
-          if (root) acceptor <- NULL
-        } else if (!is.null(acceptor)) {
+        if (!is.null(acceptor)) {
           donor <- if (token %in% c("Neu5Ac", "Neu5Gc", "Kdn", "Sia")) {
             "2"
           } else {
