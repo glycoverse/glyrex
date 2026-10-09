@@ -14,33 +14,34 @@
 \alias{rex_subset}
 \title{Query Glycan Structures with Regular Expressions}
 \usage{
-rex_detect(string, pattern, negate = FALSE)
+rex_detect(glycans, pattern, negate = FALSE)
 
-rex_count(string, pattern)
+rex_count(glycans, pattern)
 
-rex_extract(string, pattern)
+rex_extract(glycans, pattern)
 
-rex_extract_all(string, pattern)
+rex_extract_all(glycans, pattern)
 
-rex_match(string, pattern)
+rex_match(glycans, pattern)
 
-rex_match_all(string, pattern)
+rex_match_all(glycans, pattern)
 
-rex_locate(string, pattern)
+rex_locate(glycans, pattern)
 
-rex_locate_all(string, pattern)
+rex_locate_all(glycans, pattern)
 
-rex_which(string, pattern, negate = FALSE)
+rex_which(glycans, pattern, negate = FALSE)
 
-rex_subset(string, pattern, negate = FALSE)
+rex_subset(glycans, pattern, negate = FALSE)
 }
 \arguments{
-\item{string}{An IUPAC-condensed character vector, a \code{glyrepr_structure}
-vector, or one glyrepr-compatible \code{igraph}. Character inputs are parsed
-by glyrepr; malformed structures throw an error.}
+\item{glycans}{A character vector of glycan expressions in any format
+supported by \code{\link[glyparse:auto_parse]{glyparse::auto_parse()}}, a \code{glyrepr_structure} vector, or
+one glyrepr-compatible \code{igraph}. Character inputs may mix formats;
+malformed structures throw an error.}
 
 \item{pattern}{A character vector of patterns or one \code{\link[=rex_compile]{rex_compile()}} object.
-Inputs recycle only from length one. Missing strings or patterns propagate.}
+Inputs recycle only from length one. Missing glycans or patterns propagate.}
 
 \item{negate}{Invert detection when \code{TRUE}; missing values remain missing.}
 }
@@ -67,7 +68,7 @@ locations use zero rows for no match and one missing row for missing input.
 
 \code{rex_subset()} preserves the input representation and names;
 \code{rex_which()} returns matching indices. Both omit missing results and
-require \code{pattern} to have length one or the length of \code{string}.
+require \code{pattern} to have length one or the length of \code{glycans}.
 }
 \description{
 A stringr-like interface to graph-native glycan pattern matching.

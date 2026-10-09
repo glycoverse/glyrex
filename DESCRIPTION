@@ -9,6 +9,7 @@ Description: Compile and match glycan structural regular expressions with
     including explicit reducing-end anomeric information.
 License: MIT + file LICENSE
 Imports:
+    glyparse (>= 0.8.1),
     glyrepr (>= 1.1.0),
     igraph,
     utils

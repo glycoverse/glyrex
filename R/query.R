@@ -2,11 +2,12 @@
 #'
 #' A stringr-like interface to graph-native glycan pattern matching.
 #'
-#' @param string An IUPAC-condensed character vector, a `glyrepr_structure`
-#'   vector, or one glyrepr-compatible `igraph`. Character inputs are parsed
-#'   by glyrepr; malformed structures throw an error.
+#' @param glycans A character vector of glycan expressions in any format
+#'   supported by [glyparse::auto_parse()], a `glyrepr_structure` vector, or
+#'   one glyrepr-compatible `igraph`. Character inputs may mix formats;
+#'   malformed structures throw an error.
 #' @param pattern A character vector of patterns or one [rex_compile()] object.
-#'   Inputs recycle only from length one. Missing strings or patterns propagate.
+#'   Inputs recycle only from length one. Missing glycans or patterns propagate.
 #' @param negate Invert detection when `TRUE`; missing values remain missing.
 #' @returns
 #' `rex_detect()` returns logicals; `rex_count()` returns integers.
@@ -31,7 +32,7 @@
 #'
 #' `rex_subset()` preserves the input representation and names;
 #' `rex_which()` returns matching indices. Both omit missing results and
-#' require `pattern` to have length one or the length of `string`.
+#' require `pattern` to have length one or the length of `glycans`.
 #'
 #' @details
 #' The matching unit is a connected structural trace. As in glycowork, the
@@ -55,12 +56,12 @@
 #' @name rex_query
 NULL
 
-rex_queries <- function(string, pattern) {
-  graph_input <- inherits(string, "igraph")
-  structure_input <- inherits(string, "glyrepr_structure")
-  if (!graph_input && !structure_input && !is.character(string)) {
+rex_queries <- function(glycans, pattern) {
+  graph_input <- inherits(glycans, "igraph")
+  structure_input <- inherits(glycans, "glyrepr_structure")
+  if (!graph_input && !structure_input && !is.character(glycans)) {
     stop(
-      "`string` must be character, glyrepr_structure, or a glycan igraph.",
+      "`glycans` must be character, glyrepr_structure, or a glycan igraph.",
       call. = FALSE
     )
   }
@@ -75,16 +76,18 @@ rex_queries <- function(string, pattern) {
       if (is.na(p)) NULL else rex_compile(p)
     })
   }
-  nx <- if (graph_input) 1L else length(string)
+  nx <- if (graph_input) 1L else length(glycans)
   np <- length(patterns)
   if (nx != np && nx != 1L && np != 1L) {
     stop("Inputs must have equal lengths or length one.", call. = FALSE)
   }
   n <- if (nx == 0L || np == 0L) 0L else max(nx, np)
   graphs <- if (graph_input) {
-    list(string)
+    list(glycans)
+  } else if (structure_input) {
+    as.list(glycans)
   } else {
-    as.list(glyrepr::as_glycan_structure(string))
+    as.list(glyparse::auto_parse(glycans, on_failure = "error"))
   }
   schemas <- lapply(patterns, function(p) if (is.null(p)) NULL else p$captures)
   patterns <- rep(patterns, length.out = n)
@@ -104,8 +107,8 @@ rex_queries <- function(string, pattern) {
     }
     list(ctx = ctx, pattern = p, hits = hits, missing = missing)
   })
-  if (!graph_input && !is.null(names(string))) {
-    names(results) <- rep(names(string), length.out = n)
+  if (!graph_input && !is.null(names(glycans))) {
+    names(results) <- rep(names(glycans), length.out = n)
   }
   attr(results, "schemas") <- schemas
   attr(results, "structure") <- graph_input || structure_input
@@ -120,10 +123,10 @@ rex_negate <- function(negate) {
 
 #' @rdname rex_query
 #' @export
-rex_detect <- function(string, pattern, negate = FALSE) {
+rex_detect <- function(glycans, pattern, negate = FALSE) {
   rex_negate(negate)
   result <- vapply(
-    rex_queries(string, pattern),
+    rex_queries(glycans, pattern),
     function(x) {
       if (x$missing) NA else length(x$hits) > 0L
     },
@@ -134,9 +137,9 @@ rex_detect <- function(string, pattern, negate = FALSE) {
 
 #' @rdname rex_query
 #' @export
-rex_count <- function(string, pattern) {
+rex_count <- function(glycans, pattern) {
   vapply(
-    rex_queries(string, pattern),
+    rex_queries(glycans, pattern),
     function(x) {
       if (x$missing) NA_integer_ else length(x$hits)
     },
@@ -165,14 +168,14 @@ rex_extract_results <- function(results, first) {
 
 #' @rdname rex_query
 #' @export
-rex_extract <- function(string, pattern) {
-  rex_extract_results(rex_queries(string, pattern), TRUE)
+rex_extract <- function(glycans, pattern) {
+  rex_extract_results(rex_queries(glycans, pattern), TRUE)
 }
 
 #' @rdname rex_query
 #' @export
-rex_extract_all <- function(string, pattern) {
-  rex_extract_results(rex_queries(string, pattern), FALSE)
+rex_extract_all <- function(glycans, pattern) {
+  rex_extract_results(rex_queries(glycans, pattern), FALSE)
 }
 
 rex_match_results <- function(results, first) {
@@ -221,14 +224,14 @@ rex_match_results <- function(results, first) {
 
 #' @rdname rex_query
 #' @export
-rex_match <- function(string, pattern) {
-  rex_match_results(rex_queries(string, pattern), TRUE)
+rex_match <- function(glycans, pattern) {
+  rex_match_results(rex_queries(glycans, pattern), TRUE)
 }
 
 #' @rdname rex_query
 #' @export
-rex_match_all <- function(string, pattern) {
-  rex_match_results(rex_queries(string, pattern), FALSE)
+rex_match_all <- function(glycans, pattern) {
+  rex_match_results(rex_queries(glycans, pattern), FALSE)
 }
 
 rex_locations <- function(results, first) {
@@ -261,34 +264,34 @@ rex_locations <- function(results, first) {
 
 #' @rdname rex_query
 #' @export
-rex_locate <- function(string, pattern) {
-  rex_locations(rex_queries(string, pattern), TRUE)
+rex_locate <- function(glycans, pattern) {
+  rex_locations(rex_queries(glycans, pattern), TRUE)
 }
 
 #' @rdname rex_query
 #' @export
-rex_locate_all <- function(string, pattern) {
-  rex_locations(rex_queries(string, pattern), FALSE)
+rex_locate_all <- function(glycans, pattern) {
+  rex_locations(rex_queries(glycans, pattern), FALSE)
 }
 
 #' @rdname rex_query
 #' @export
-rex_which <- function(string, pattern, negate = FALSE) {
-  nx <- if (inherits(string, "igraph")) 1L else length(string)
+rex_which <- function(glycans, pattern, negate = FALSE) {
+  nx <- if (inherits(glycans, "igraph")) 1L else length(glycans)
   np <- if (inherits(pattern, "glyrex_pattern")) 1L else length(pattern)
   if (!np %in% c(1L, nx)) {
     stop("Subsetting requires one pattern or one per glycan.", call. = FALSE)
   }
-  which(rex_detect(string, pattern, negate = negate))
+  which(rex_detect(glycans, pattern, negate = negate))
 }
 
 #' @rdname rex_query
 #' @export
-rex_subset <- function(string, pattern, negate = FALSE) {
-  keep <- rex_which(string, pattern, negate = negate)
-  if (inherits(string, "igraph")) {
-    if (length(keep)) string else NULL
+rex_subset <- function(glycans, pattern, negate = FALSE) {
+  keep <- rex_which(glycans, pattern, negate = negate)
+  if (inherits(glycans, "igraph")) {
+    if (length(keep)) glycans else NULL
   } else {
-    string[keep]
+    glycans[keep]
   }
 }

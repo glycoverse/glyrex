@@ -1,5 +1,7 @@
 # glyrex 0.0.0.9000
 
+* Query functions now use `glycans` instead of `string` and automatically parse all formats supported by `glyparse::auto_parse()`, including mixed-format vectors.
+
 * Branch absence requires `(!branch-)`; bare `!linked-residue` and groups missing the final attachment dash are rejected. `[^A]` always consumes a nonmatching residue, including when A has a linkage constraint.
 
 * Residue negation uses `[^A]`; the `[!A]` spelling is rejected with migration guidance.

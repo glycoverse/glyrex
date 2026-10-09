@@ -1,3 +1,11 @@
+# malformed expressions fail through the automatic parser
+
+    Code
+      rex_detect(glycans = c("Galb1-4GlcNAc", "WURCS-invalid"), pattern = "Gal")
+    Condition
+      Error in `glyparse::auto_parse()`:
+      ! Can't parse: "WURCS-invalid"
+
 # unsupported inputs and incompatible recycling fail clearly
 
     Code
@@ -20,7 +28,7 @@
       rex_detect(1, "Gal")
     Condition
       Error:
-      ! `string` must be character, glyrepr_structure, or a glycan igraph.
+      ! `glycans` must be character, glyrepr_structure, or a glycan igraph.
 
 ---
 

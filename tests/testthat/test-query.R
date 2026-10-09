@@ -23,6 +23,112 @@ test_that("vectorized APIs preserve missing, duplicate, and empty inputs", {
   expect_equal(rex_detect(x, rex_compile("Gal")), rex_detect(x, "Gal"))
 })
 
+test_that("queries accept named glycans in every glyparse format", {
+  glycans <- c(
+    condensed = "Gal(b1-4)GlcNAc(b1-",
+    extended = "beta-D-Galp-(1->3)-alpha-D-GalpNAc-(1->",
+    glycoct = paste(
+      "RES",
+      "1b:a-dgal-HEX-1:5",
+      "2s:n-acetyl",
+      "3b:b-dgal-HEX-1:5",
+      "LIN",
+      "1:1d(2+1)2n",
+      "2:1o(3+1)3d",
+      sep = "\n"
+    ),
+    short = "Neu5Aca3Gala3(Fuca6)GlcNAcb-",
+    glycam = "DManpa1-3[DManpa1-6]DManpb1-4DGlcpNAcb1-4DGlcpNAcb1-OH",
+    compact = "Mana1-3(Mana1-6)Manb1-4GlcNAcb",
+    wurcs = paste0(
+      "WURCS=2.0/2,3,2/",
+      "[a2112h-1b_1-5][a2112h-1a_1-4]/1-2-2/a4-b1_b2-c1"
+    ),
+    linear_code = "Ma3(Ma6)Mb4GNb4GNb",
+    pglyco = "(N(F)(N(H(H(N))(H(N(H))))))",
+    strucgp = "A2B2C1D1E2F1fedD1E2edcbB5ba",
+    kcf = paste(
+      "ENTRY       G00001                      Glycan",
+      "NODE        2",
+      "            1   Glc        0     0",
+      "            2   Gal        6     0",
+      "EDGE        1",
+      "            1     2:b1    1:4",
+      "///",
+      sep = "\n"
+    ),
+    linucs = "[][b-D-Glcp]{[(4+1)][b-D-Galp]{}}",
+    gwb = paste0(
+      "freeEnd--1b1D-GlcNAc,p(--6a1L-Fuc,p)",
+      "--4b1D-Gal,p--3a2D-NeuAc,p$MONO,Und,0,0,freeEnd"
+    )
+  )
+  generic <- paste0(
+    "Hex(??-?)HexNAc(??-?)Hex(??-?)[HexNAc(??-?)Hex(??-?)]",
+    "Hex(??-?)HexNAc(??-?)[dHex(??-?)]HexNAc(??-"
+  )
+  canonical <- c(
+    "Gal(b1-4)GlcNAc(b1-",
+    "Gal(b1-3)GalNAc(a1-",
+    "Gal(b1-3)GalNAc(a1-",
+    "Neu5Ac(a2-3)Gal(a1-3)[Fuc(a1-6)]GlcNAc(b1-",
+    "Man(a1-3)[Man(a1-6)]Man(b1-4)GlcNAc(b1-4)GlcNAc(b1-",
+    "Man(a1-3)[Man(a1-6)]Man(b1-4)GlcNAc(b1-",
+    "Galf(a1-2)Galf(a1-4)Gal(b1-",
+    "Man(a1-3)[Man(a1-6)]Man(b1-4)GlcNAc(b1-4)GlcNAc(b1-",
+    generic,
+    generic,
+    "Gal(b1-4)Glc(?1-",
+    "Gal(b1-4)Glc(b1-",
+    "Neu5Ac(a2-3)Gal(b1-4)[Fuc(a1-6)]GlcNAc(b1-"
+  )
+  names(canonical) <- names(glycans)
+  glycans <- c(glycans, missing = NA_character_, glycans[1])
+  canonical <- c(canonical, missing = NA_character_, canonical[1])
+  queries <- list(
+    rex_detect,
+    rex_count,
+    rex_extract,
+    rex_extract_all,
+    rex_match,
+    rex_match_all,
+    rex_locate,
+    rex_locate_all
+  )
+  for (query in queries) {
+    expect_identical(
+      query(glycans = glycans, pattern = "."),
+      query(glycans = canonical, pattern = ".")
+    )
+  }
+  expect_identical(
+    rex_count(glycans = glycans, pattern = "."),
+    setNames(
+      c(2L, 2L, 2L, 4L, 5L, 4L, 3L, 5L, 9L, 9L, 2L, 2L, 4L, NA_integer_, 2L),
+      names(glycans)
+    )
+  )
+  expect_identical(
+    rex_subset(glycans = glycans, pattern = "."),
+    glycans[!is.na(glycans)]
+  )
+  expect_identical(
+    rex_which(glycans = glycans, pattern = "."),
+    which(!is.na(glycans))
+  )
+  expect_identical(
+    rex_detect(glycans = c(NA_character_, NA_character_), "."),
+    c(NA, NA)
+  )
+})
+
+test_that("malformed expressions fail through the automatic parser", {
+  expect_snapshot(
+    error = TRUE,
+    rex_detect(glycans = c("Galb1-4GlcNAc", "WURCS-invalid"), pattern = "Gal")
+  )
+})
+
 test_that("captures return matrices and preserve absent group columns", {
   x <- c("Gal(b1-4)GlcNAc(a1-", "Fuc(a1-3)GlcNAc", NA)
   p <- "(?<tip>Gal)-(?<root>GlcNAc)"
