@@ -37,7 +37,7 @@ x <- c(
   "Gal(b1-4)GlcNAc(b1-",
   NA_character_
 )
-p <- rex_compile("Galb4-(Fuca3)-GlcNAc")
+p <- rex_compile("Galb4-(Fuca3-)GlcNAc")
 rex_detect(x, p)
 #> [1]  TRUE FALSE    NA
 rex_extract(x, p)

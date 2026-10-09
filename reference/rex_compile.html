@@ -57,42 +57,156 @@ towards the reducing end; they are not text regular expressions.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>Residues are separated by <code>-</code>. Linkages accept shorthand (<code>Galb4</code>) or
-IUPAC notation (<code>Gal(b1-4)</code>). <code>.</code> matches any residue; <code>Hex</code>, <code>HexNAc</code>,
-and other glyrepr classes match their concrete members. <code>Sia</code> matches
-Neu5Ac, Neu5Gc, and Kdn. <code>[Gal|Man]</code> expresses alternatives; <code>[^Fuc]</code>
-excludes residues. Parentheses describe a sibling branch,
-as in <code>Galb4-(Fuca3)-GlcNAc</code>.
-<code>(!...-)</code> always asserts branch absence: <code>(!Fuc-)</code> forbids a Fuc branch
-with any linkage, whereas <code>(!Fuca3-)</code> forbids an alpha1-3 Fuc branch.
-The assertion checks unconsumed branches attached to the next residue,
-consumes no nodes, and can contain a multi-residue branch pattern.
-Write the attachment dash inside the group, immediately before <code>)</code>,
-followed directly by the attachment residue: <code>Galb4-(!Fuc-)GlcNAc</code>.
-Bare <code>!residue</code> and absence groups without the final dash are rejected.</p>
-<p>Bracketed groups accept <code>?</code>, <code>*</code>, <code>+</code>, <code>{n}</code>, <code>{n,m}</code>, <code>{n,}</code>, or
-<code>{,m}</code>. Append <code>?</code> for lazy repetition. Open bounds are limited by
-the input graph, not a fixed repeat count. <code>^</code> requires a non-reducing
-terminus, <code>$</code> the reducing end, and <code>%</code> an internal residue.
-Lookahead <code>(?=...)</code> / <code>(?!...)</code> tests the reducing-end direction;
-lookbehind <code>(?&lt;=...)</code> / <code>(?&lt;!...)</code> tests the non-reducing direction.
-Assertions consume no residues. Empty matches are not returned.</p>
-<p><code>(?&lt;name&gt;...)</code> captures a path (an extension to glycowork); <code>(?:...)</code>
-groups a path without capture. Ordinary parentheses remain branches.
-The capture name <code>match</code> is reserved for the full-match result column.</p>
-<p>An omitted anomer is unconstrained. <code>GlcNAca</code> constrains the anomer
-at either an internal residue or the reducing end. <code>GlcNAc(a1-</code>
-explicitly requires the reducing end and its anomeric position, using
-glyrepr notation. A closed form, <code>GlcNAc(a1-)</code>, is also accepted inside
-groups. A specified acceptor position, e.g. <code>GlcNAca4</code>, requires an
-outgoing glycosidic linkage and cannot match the reducing end.
-Unknown linkage fields are wildcards on either side, following glycowork;
-ambiguous positions match when their possible values overlap.</p>
+
+<div class="section">
+<h3 id="reading-a-structural-pattern">Reading a structural pattern<a class="anchor" aria-label="anchor" href="#reading-a-structural-pattern"></a></h3>
+
+
+<p>A pattern describes connected residues in a glycan graph.
+Read a path from left to right, towards the reducing end.
+Separate adjacent residues with <code>-</code>: for example,
+<code>Gal-GlcNAc</code> asks for a Gal attached directly to a GlcNAc. It does not skip
+intervening residues. Without end anchors, this path can occur within a
+larger glycan and does not have to describe the whole structure.</p>
+<p>Start with residue names, then add constraints as needed:</p><ul><li><p><code>Gal</code> matches a galactose residue.</p></li>
+<li><p><code>.</code> matches any one residue, not any number of residues.</p></li>
+<li><p><code>Hex</code> and <code>HexNAc</code> match members of the corresponding glyrepr classes;
+for example, <code>Hex</code> matches Gal, Glc, and Man.</p></li>
+<li><p><code>Sia</code> matches Neu5Ac, Neu5Gc, and Kdn.</p></li>
+<li><p><code>[Gal|Man]</code> matches either Gal or Man. Alternatives can also be paths,
+as in <code>[Gal-GlcNAc|Gal-GalNAc]</code>.</p></li>
+<li><p><code>[^Fuc]</code> matches one residue that is not Fuc. Negated alternatives must
+each describe a single residue; <code>[^Fuc|Xyl]</code> excludes both Fuc and Xyl.</p></li>
+</ul></div>
+
+<div class="section">
+<h3 id="specifying-linkages-and-the-reducing-end">Specifying linkages and the reducing end<a class="anchor" aria-label="anchor" href="#specifying-linkages-and-the-reducing-end"></a></h3>
+
+
+<p>A linkage belongs to the residue on its non-reducing side. For example,
+<code>Galb4-GlcNAc</code> requires Gal to be attached to GlcNAc by a beta1-4 linkage.
+Use glyco-regex linkage suffixes such as <code>Galb4</code>; IUPAC-style
+linkages such as <code>Gal(b1-4)</code> are not supported in patterns.
+The suffix specifies the anomer and acceptor position. The donor position
+is 1, or 2 for Neu5Ac, Neu5Gc, Kdn, and <code>Sia</code>.</p>
+<p>Omitted linkage fields impose no constraint. Thus <code>Gal-GlcNAc</code> does not
+specify a linkage, and <code>GlcNAca</code> specifies only the alpha anomer, either
+at an internal residue or at the reducing end. A specified acceptor
+position, as in <code>GlcNAca4</code>, requires an outgoing glycosidic linkage towards
+the reducing end and cannot match the reducing-end residue itself.</p>
+<p>To require reducing-end GlcNAc with an alpha anomer, use <code>GlcNAca$</code>.</p>
+<p>Unknown linkage fields (<code>?</code>) act as wildcards in either the pattern or
+the input glycan, following glycowork. A specified linkage can therefore
+match an input whose corresponding field is unknown; a match establishes
+compatibility, not certainty about that linkage. Ambiguous positions
+match when their possible values overlap, so acceptor <code>3/4</code> is compatible
+with <code>4</code> but not <code>6</code>.</p>
+</div>
+
+<div class="section">
+<h3 id="requiring-or-excluding-branches">Requiring or excluding branches<a class="anchor" aria-label="anchor" href="#requiring-or-excluding-branches"></a></h3>
+
+
+<p>Ordinary parentheses describe a sibling branch attached to the next
+residue in the main path. The attachment dash must be inside the
+parentheses, with no dash after the branch group. In
+<code>Galb4-(Fuca3-)GlcNAc</code>, both Gal and Fuc attach to the same GlcNAc:
+Gal by beta1-4 and Fuc by alpha1-3. The Fuc
+is not inserted between Gal and GlcNAc. Required branch residues are part
+of the match. Additional branches are allowed unless explicitly excluded.
+Pattern parentheses serve a different purpose from the square brackets
+used for branches in an input IUPAC string such as
+<code>Gal(b1-4)[Fuc(a1-3)]GlcNAc</code>.</p>
+<p>Use <code>(!...-)</code> to require the absence of a sibling branch. For example,
+<code>Galb4-(!Fuc-)GlcNAc</code> matches the Gal-GlcNAc path only if the GlcNAc has
+no remaining Fuc branch with any linkage. <code>Galb4-(!Fuca3-)GlcNAc</code> excludes
+only a branch compatible with alpha1-3 Fuc. The check considers branches
+not already used by the preceding pattern and can describe several
+residues, as in <code>Gal-(!Gal-GlcNAc-)Man</code>.</p>
+<p>Keep the attachment dash inside the absence group, immediately before
+<code>)</code>, and write the attachment residue directly after it. Bare <code>!Fuc</code>,
+<code>[!Fuc]</code>, and absence groups without the final dash are rejected.</p>
+<p>Unlike <code>[^Fuc]</code>, which matches and includes one non-Fuc residue,
+<code>(!Fuc-)</code> only checks a condition and adds no residues to the match.
+Consequently, <code>[^Fuc]-GlcNAc</code> requires a non-Fuc residue before GlcNAc;
+<code>(!Fuc-)GlcNAc</code> can match GlcNAc alone if it has no Fuc branch.</p>
+</div>
+
+<div class="section">
+<h3 id="grouping-and-repetition">Grouping and repetition<a class="anchor" aria-label="anchor" href="#grouping-and-repetition"></a></h3>
+
+
+<p>Use square brackets or <code>(?:...)</code> to group a path. Ordinary parentheses
+mean a branch, not a path group. Attach a repetition operator to the group:</p><ul><li><p><code>[Gal]?</code>: zero or one Gal.</p></li>
+<li><p><code>[Gal]*</code>: zero or more consecutive Gal residues.</p></li>
+<li><p><code>[Gal]+</code>: one or more consecutive Gal residues.</p></li>
+<li><p><code>[Gal]{2}</code>: exactly two consecutive Gal residues.</p></li>
+<li><p><code>[Gal]{2,4}</code>: between two and four consecutive Gal residues.</p></li>
+<li><p><code>[Gal]{2,}</code>: at least two consecutive Gal residues.</p></li>
+<li><p><code>[Gal]{,4}</code>: zero to four consecutive Gal residues.</p></li>
+</ul><p>A group can contain more than one residue: <code>[Galb4-GlcNAcb3]{2}</code> repeats
+the two-residue path twice. Use grouped syntax for repetition rather than
+forms such as <code>Gal*</code>, which are rejected.</p>
+<p>Repetition is greedy by default: longer repetitions are tried first.
+Append <code>?</code> to try shorter repetitions first, as in <code>[Gal]+?</code>. In either
+case, the rest of the pattern must also match. Open upper bounds are
+limited by the input graph, not a fixed repeat count. A pattern that
+permits zero repetitions never produces an empty match.</p>
+</div>
+
+<div class="section">
+<h3 id="anchors-and-lookaround-assertions">Anchors and lookaround assertions<a class="anchor" aria-label="anchor" href="#anchors-and-lookaround-assertions"></a></h3>
+
+
+<p>Assertions restrict where a match is allowed without adding residues:</p><ul><li><p><code>^Gal</code> requires Gal at a non-reducing terminus (a residue with no
+further residues attached on its non-reducing side).</p></li>
+<li><p><code>GlcNAc$</code> requires GlcNAc at the reducing end.</p></li>
+<li><p><code>Gal%</code> requires Gal to be internal: neither a non-reducing terminus
+nor the reducing-end residue.</p></li>
+</ul><p>Lookaround checks a neighbouring path without including it in the result.
+Lookahead examines the reducing-end direction: <code>Gal-(?=GlcNAc)</code> matches
+Gal only when the next residue is GlcNAc, whereas <code>Gal-(?!GlcNAc)</code> requires
+that the next residue does not match GlcNAc (or is absent). Lookbehind
+examines the non-reducing direction: <code>(?&lt;=Gal-)GlcNAc</code> matches GlcNAc
+when a Gal is attached to it, and <code>(?&lt;!Gal-)GlcNAc</code> requires that no such
+Gal path exists. Paths inside lookbehind are still written towards the
+reducing end, just like the rest of the pattern.</p>
+<p>Negative lookbehind and branch absence are equivalent at the start of a
+pattern: <code>(?&lt;!Gal-)GlcNAc</code> and <code>(!Gal-)GlcNAc</code> both match only GlcNAc
+with no directly attached Gal on its non-reducing side, regardless of
+linkage. Neither assertion adds residues to the match.</p>
+<p>After a preceding path, the two assertions differ. Negative lookbehind
+checks all attached paths, including residues already matched, whereas
+branch absence checks only paths not already used by the preceding pattern.
+For example, on <code>Gal(b1-4)GlcNAc</code>, <code>Gal-(!Gal-)GlcNAc</code> matches because
+there is no additional Gal branch. <code>Gal-(?&lt;!Gal-)GlcNAc</code> does not match
+because the already matched Gal still counts for negative lookbehind.</p>
+<p>Lookaround, branch-absence checks, and anchors cannot be repeated.
+Assertions alone do not produce a match because every returned match
+must contain at least one residue.</p>
+</div>
+
+<div class="section">
+<h3 id="capturing-part-of-a-match">Capturing part of a match<a class="anchor" aria-label="anchor" href="#capturing-part-of-a-match"></a></h3>
+
+
+<p>Use <code>(?&lt;name&gt;...)</code> to give a matched path a name. For example,
+<code>(?&lt;terminal&gt;Gal)-GlcNAc</code> matches the two-residue path and captures its Gal
+as <code>terminal</code>. <code><a href="rex_query.html">rex_match()</a></code> and <code><a href="rex_query.html">rex_match_all()</a></code> return the full match
+in the <code>match</code> column and captured fragments in their named columns.
+This named-capture syntax is an extension to glycowork.</p>
+<p>Capture names must start with a letter, contain only letters, digits,
+or underscores, and be unique within the pattern. The name <code>match</code> is
+reserved. Use <code>(?:...)</code> when grouping without a named capture is desired.
+See <code><a href="rex_query.html">rex_detect()</a></code> for how matches are ordered and counted, including
+overlapping matches and matches contained within larger ones.</p>
+</div>
+
     </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu">rex_compile</span><span class="op">(</span><span class="st">"Galb4-(Fuca3)-GlcNAc"</span><span class="op">)</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu">rex_compile</span><span class="op">(</span><span class="st">"Galb4-(Fuca3-)GlcNAc"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="rex_query.html">rex_detect</a></span><span class="op">(</span><span class="st">"Gal(b1-4)[Fuc(a1-3)]GlcNAc"</span>, <span class="va">p</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] TRUE</span>
 <span class="r-in"><span><span class="fu"><a href="rex_query.html">rex_detect</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"GlcNAc(a1-"</span>, <span class="st">"GlcNAc(b1-"</span><span class="op">)</span>, <span class="st">"GlcNAca$"</span><span class="op">)</span></span></span>

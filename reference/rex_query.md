@@ -5,40 +5,41 @@ A stringr-like interface to graph-native glycan pattern matching.
 ## Usage
 
 ``` r
-rex_detect(string, pattern, negate = FALSE)
+rex_detect(glycans, pattern, negate = FALSE)
 
-rex_count(string, pattern)
+rex_count(glycans, pattern)
 
-rex_extract(string, pattern)
+rex_extract(glycans, pattern)
 
-rex_extract_all(string, pattern)
+rex_extract_all(glycans, pattern)
 
-rex_match(string, pattern)
+rex_match(glycans, pattern)
 
-rex_match_all(string, pattern)
+rex_match_all(glycans, pattern)
 
-rex_locate(string, pattern)
+rex_locate(glycans, pattern)
 
-rex_locate_all(string, pattern)
+rex_locate_all(glycans, pattern)
 
-rex_which(string, pattern, negate = FALSE)
+rex_which(glycans, pattern, negate = FALSE)
 
-rex_subset(string, pattern, negate = FALSE)
+rex_subset(glycans, pattern, negate = FALSE)
 ```
 
 ## Arguments
 
-- string:
+- glycans:
 
-  An IUPAC-condensed character vector, a `glyrepr_structure` vector, or
-  one glyrepr-compatible `igraph`. Character inputs are parsed by
-  glyrepr; malformed structures throw an error.
+  A character vector of glycan expressions in any format supported by
+  [`glyparse::auto_parse()`](https://glycoverse.github.io/glyparse/reference/auto_parse.html),
+  a `glyrepr_structure` vector, or one glyrepr-compatible `igraph`.
+  Character inputs may mix formats; malformed structures throw an error.
 
 - pattern:
 
   A character vector of patterns or one
   [`rex_compile()`](https://glycoverse.github.io/glyrex/reference/rex_compile.md)
-  object. Inputs recycle only from length one. Missing strings or
+  object. Inputs recycle only from length one. Missing glycans or
   patterns propagate.
 
 - negate:
@@ -74,7 +75,7 @@ for no match and one missing row for missing input.
 
 `rex_subset()` preserves the input representation and names;
 `rex_which()` returns matching indices. Both omit missing results and
-require `pattern` to have length one or the length of `string`.
+require `pattern` to have length one or the length of `glycans`.
 
 ## Details
 
