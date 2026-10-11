@@ -2,6 +2,10 @@ url: https://glycoverse.github.io/glyrex/
 template:
   bootstrap: 5
 
+articles:
+  - title: Getting started
+    contents:
+      - glyrex
 
 reference:
   - title: Structural regular expressions
