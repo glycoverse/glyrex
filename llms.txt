@@ -1,9 +1,9 @@
 # glyrex
 
 `glyrex` searches glycan structures using a glycowork-style regular
-expression language and a stringr-style R API. Matching follows glycan
-graph topology, including branches, rather than character positions in
-an IUPAC string.
+expression language and a stringr-style R API. It provides a more
+flexible and expressive way for glycan substructure analysis than
+[glymotif](https://github.com/glycoverse/glymotif).
 
 ## Installation
 
