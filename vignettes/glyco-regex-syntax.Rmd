@@ -445,5 +445,5 @@ branch placement are not supported. Invalid structures produce errors rather
 than `FALSE`. Most importantly, a match involving unknown linkages means
 compatibility with the pattern, not experimental confirmation of those linkages.
 
-See `?rex_compile` for the syntax reference and `?rex_detect` for query
+See `?rex_compile` for compiling reusable patterns and `?rex_detect` for query
 functions and result conventions.

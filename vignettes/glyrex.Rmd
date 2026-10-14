@@ -420,7 +420,7 @@ This is optional; passing the pattern in quotation marks works too.
 
 For a detailed explanation of each symbol, with no prior regex knowledge
 required, see [Glyco-regex syntax, step by step](glyco-regex-syntax.html).
-For the syntax reference, see `?rex_compile`.
+For details on compiling reusable patterns, see `?rex_compile`.
 For functions that count, extract, or locate matches, see `?rex_detect`.
 As you explore, keep building patterns one biological condition at a time:
 a residue, its neighbour, a linkage, and then any branch or end condition
