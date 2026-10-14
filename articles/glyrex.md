@@ -1,0 +1,514 @@
+# Get Started with glyrex
+
+## Start with glymotif: find a familiar motif
+
+Many glycan questions start with a **motif**: a small arrangement of
+sugars that you want to find within a larger structure. For example, you
+might ask which glycans contain LacNAc (Galβ1–4GlcNAc), how many times a
+motif occurs, or whether an O-glycan carries a particular core.
+
+[glymotif](https://github.com/glycoverse/glymotif) is designed for these
+questions. You can describe a motif using the same notation as a glycan,
+or select a named motif from its collection. It can check whether the
+motif is present, count its occurrences, and look for it at a terminus,
+at the reducing end, or anywhere in the structure. It also supports
+broader sugar families, such as `Hex`, when you do not need to specify
+one particular monosaccharide.
+
+For a question such as “Does this glycan contain Galβ1–4GlcNAc?”,
+describing that motif is often all you need. But what if your question
+includes a condition about something that must *not* be attached to it?
+
+### A motif alone does not tell the whole story
+
+Suppose you want to find **sialylated LacNAc without a Fuc branch on its
+GlcNAc**. Consider these two small structures:
+
+| Structure | Written in IUPAC-condensed notation | Should we keep it? |
+|:---|:---|:---|
+| Sialylated LacNAc | `Neu5Ac(a2-3)Gal(b1-4)GlcNAc(b1-` | Yes |
+| The same unit with a Fuc branch | `Neu5Ac(a2-3)Gal(b1-4)[Fuc(a1-3)]GlcNAc(b1-` | No |
+
+In this notation, `[Fuc(a1-3)]` means that Fuc is attached to the
+following GlcNAc as a branch. Both structures contain the sequence
+`Neu5Ac(a2-3)Gal(b1-4)GlcNAc(b1-`. An ordinary glymotif search for that
+sequence therefore finds both: leaving Fuc out of the motif does not
+require Fuc to be absent from the surrounding structure.
+
+We need to say something more specific: “Find this unit, but allow no
+Fuc branch on **this particular GlcNAc**.” Excluding every glycan that
+contains Fuc would go too far, because a larger glycan could have fucose
+elsewhere and still contain the unit we want. Similarly, a glycan with
+several antennae could contain both a qualifying unit and a fucosylated
+one.
+
+glymotif has additional matching options, and more involved questions
+can be approached with extra checks. However, the ordinary motif
+description alone does not directly express this selective absence
+condition while allowing other branches. This is where **glyrex**
+becomes useful.
+
+### From a motif to a search pattern
+
+glyrex lets you combine the sugars you want to find with conditions
+about their surroundings. These short descriptions are called
+**patterns**. For our example, a pattern can say:
+
+> Find a sialic acid attached to Galβ1–4GlcNAc, with no Fuc branch on
+> that GlcNAc.
+
+As we work through the guide, we will build that request into
+`Sia-Galb4-(!Fuc-)GlcNAc`. Do not worry about the punctuation yet: each
+part will be introduced separately. The same approach also lets you
+describe choices of residues and variable numbers of repeated units in
+one pattern.
+
+These patterns are sometimes called **glycan regular expressions**, but
+you do not need to know regular expressions to use this guide. We will
+start with one residue, add one biological condition at a time, and
+return to our sialylated LacNAc example once the pieces are familiar.
+
+## Meet your first collection of glycans
+
+``` r
+
+library(glyrex)
+```
+
+For this guide, we will use five small, illustrative structures. Their
+names are just labels to help us follow the results.
+
+``` r
+
+glycans <- c(
+  lacnac = "Gal(b1-4)GlcNAc(b1-",
+  sialylated = "Neu5Ac(a2-3)Gal(b1-4)GlcNAc(b1-",
+  fucosylated = "Gal(b1-4)[Fuc(a1-3)]GlcNAc(b1-",
+  both = "Neu5Ac(a2-3)Gal(b1-4)[Fuc(a1-3)]GlcNAc(b1-",
+  mannose = "Man(a1-3)Man(a1-"
+)
+```
+
+These structures use IUPAC-condensed notation. For example,
+`Gal(b1-4)GlcNAc(b1-` is Gal attached to GlcNAc through a β1–4 linkage.
+The final `(b1-` specifies the β anomer and donor position 1 of the
+reducing-end GlcNAc; it does not add another residue. The square
+brackets in the third structure show a branch: both Gal and Fuc attach
+to the same GlcNAc. Read each chain towards the reducing end, from left
+to right.
+
+The **structures** describe what you have. The **pattern** describes
+what you want to find. Keep them separate: their notation is slightly
+different, as we will see below.
+
+## Start with one residue
+
+Which structures contain Gal?
+
+``` r
+
+rex_detect(glycans, "Gal")
+#>      lacnac  sialylated fucosylated        both     mannose 
+#>        TRUE        TRUE        TRUE        TRUE       FALSE
+```
+
+[`rex_detect()`](https://glycoverse.github.io/glyrex/reference/rex_query.md)
+answers once for each structure, keeping the same order and names.
+`TRUE` means the feature was found; `FALSE` means it was not. Here, the
+first four structures contain Gal, and the mannose example does not.
+
+To keep the structures themselves, use
+[`rex_subset()`](https://glycoverse.github.io/glyrex/reference/rex_query.md):
+
+``` r
+
+rex_subset(glycans, "Gal")
+#>                                       lacnac 
+#>                        "Gal(b1-4)GlcNAc(b1-" 
+#>                                   sialylated 
+#>            "Neu5Ac(a2-3)Gal(b1-4)GlcNAc(b1-" 
+#>                                  fucosylated 
+#>             "Gal(b1-4)[Fuc(a1-3)]GlcNAc(b1-" 
+#>                                         both 
+#> "Neu5Ac(a2-3)Gal(b1-4)[Fuc(a1-3)]GlcNAc(b1-"
+```
+
+The two ingredients stay the same in both calls: first your glycans,
+then your pattern in quotation marks.
+
+## Connect two residues
+
+Now ask for Gal directly attached to GlcNAc:
+
+``` r
+
+rex_detect(glycans, "Gal-GlcNAc")
+#>      lacnac  sialylated fucosylated        both     mannose 
+#>        TRUE        TRUE        TRUE        TRUE       FALSE
+```
+
+In a pattern, `-` connects neighbouring residues. It does not skip any
+residues in between. As with the structures above, write the pattern
+from the non-reducing side towards the reducing end.
+
+The pattern can be a small part of a larger glycan. It therefore finds
+`Gal-GlcNAc` in all four GlcNAc-containing examples, including those
+with sialic acid or fucose. Additional residues and branches are allowed
+unless you say otherwise.
+
+### Add a linkage when it matters
+
+`Gal-GlcNAc` leaves the linkage unspecified. To require β1–4, write
+`Galb4-GlcNAc`:
+
+``` r
+
+linkage_examples <- c(
+  beta1_4 = "Gal(b1-4)GlcNAc(b1-",
+  beta1_3 = "Gal(b1-3)GlcNAc(b1-"
+)
+rex_detect(linkage_examples, "Galb4-GlcNAc")
+#> beta1_4 beta1_3 
+#>    TRUE   FALSE
+```
+
+Read `Galb4` as “Gal attached by β1–4 to the next residue.” Similarly,
+`Fuca3` means Fuc attached by α1–3, and `Neu5Aca3` means Neu5Ac attached
+by α2–3. The donor position is taken as 1 for these common sugars and 2
+for Neu5Ac, Neu5Gc, Kdn, and the `Sia` family.
+
+Notice the two ways of writing the same linkage:
+
+| Where you write it    | Example               |
+|:----------------------|:----------------------|
+| In an input structure | `Gal(b1-4)GlcNAc(b1-` |
+| In a search pattern   | `Galb4-GlcNAc`        |
+
+Omitting a linkage condition means “any linkage is acceptable”; it does
+not mean that the linkage must be unknown.
+
+## Ask whether a residue is terminal
+
+A Gal may be present but capped by sialic acid. To require Gal at a
+non-reducing terminus, put `^` immediately before it:
+
+``` r
+
+rex_detect(glycans, "^Galb4-GlcNAc")
+#>      lacnac  sialylated fucosylated        both     mannose 
+#>        TRUE       FALSE        TRUE       FALSE       FALSE
+```
+
+Now only `lacnac` and `fucosylated` match. In the two sialylated
+structures, Gal has Neu5Ac attached on its non-reducing side, so it is
+not terminal. The Fuc branch on GlcNAc does not prevent Gal from being
+terminal.
+
+At the other end, `$` requires the preceding residue to be the
+reducing-end residue:
+
+``` r
+
+rex_detect(glycans, "GlcNAc$")
+#>      lacnac  sialylated fucosylated        both     mannose 
+#>        TRUE        TRUE        TRUE        TRUE       FALSE
+```
+
+In these small examples, GlcNAc is at the reducing end. In a larger
+N-glycan, an antenna GlcNAc would not satisfy this condition. Only add
+`$` when the position at the reducing end is part of your question.
+
+## Describe a branch
+
+Suppose you want Galβ1–4GlcNAc with Fucα1–3 attached to that same
+GlcNAc:
+
+``` r
+
+rex_detect(glycans, "Galb4-(Fuca3-)GlcNAc")
+#>      lacnac  sialylated fucosylated        both     mannose 
+#>       FALSE       FALSE        TRUE        TRUE       FALSE
+```
+
+This finds `fucosylated` and `both`. Read the pattern in three pieces:
+
+- `Galb4-`: Gal attaches to the upcoming GlcNAc through β1–4.
+- `(Fuca3-)`: a Fuc branch attaches to that same GlcNAc through α1–3.
+- `GlcNAc`: the residue receiving both attachments.
+
+The Fuc is a branch, not a residue between Gal and GlcNAc. Keep the
+branch’s attachment dash **inside** the parentheses, and write `GlcNAc`
+directly after the closing parenthesis.
+
+For readers familiar with regular expressions: ordinary parentheses here
+mean a glycan branch. They do not simply group a piece of text.
+
+### Require a branch to be absent
+
+Put `!` just inside the branch parentheses to exclude that branch:
+
+``` r
+
+rex_detect(glycans, "Galb4-(!Fuc-)GlcNAc")
+#>      lacnac  sialylated fucosylated        both     mannose 
+#>        TRUE        TRUE       FALSE       FALSE       FALSE
+```
+
+This finds `lacnac` and `sialylated`: their matched GlcNAc has no Fuc
+branch. We left out the Fuc linkage to exclude Fuc attached by any
+linkage. `(!Fuca3-)` would exclude only a branch compatible with α1–3
+Fuc.
+
+This is a **local condition** on the GlcNAc in the match. It does not
+rule out fucose elsewhere in a larger glycan. If your question is
+instead “Which whole structures contain no Fuc at all?”, use:
+
+``` r
+
+rex_subset(glycans, "Fuc", negate = TRUE)
+#>                            lacnac                        sialylated 
+#>             "Gal(b1-4)GlcNAc(b1-" "Neu5Ac(a2-3)Gal(b1-4)GlcNAc(b1-" 
+#>                           mannose 
+#>                "Man(a1-3)Man(a1-"
+```
+
+Here `negate = TRUE` keeps structures in which the pattern was *not*
+found. It also keeps the mannose example, which has neither Fuc nor
+LacNAc.
+
+## Allow a choice of residues
+
+Sometimes you want to include more than one sugar. Write alternatives
+inside square brackets, separated by `|`, which you can read as “or”:
+
+``` r
+
+rex_detect(glycans, "[Gal|Man]")
+#>      lacnac  sialylated fucosylated        both     mannose 
+#>        TRUE        TRUE        TRUE        TRUE        TRUE
+```
+
+This asks whether each structure contains Gal or Man. glyrex also
+provides familiar sugar families: `Hex` includes Gal, Glc, and Man;
+`HexNAc` includes GlcNAc and GalNAc; and `Sia` includes Neu5Ac, Neu5Gc,
+and Kdn.
+
+``` r
+
+rex_detect(glycans, "Sia-Galb4-GlcNAc")
+#>      lacnac  sialylated fucosylated        both     mannose 
+#>       FALSE        TRUE       FALSE        TRUE       FALSE
+```
+
+This finds our two sialylated examples without requiring a particular
+member of the sialic acid family or its linkage.
+
+Two other choices are useful once you are comfortable with the basics:
+
+| Pattern         | What it asks for                                       |
+|:----------------|:-------------------------------------------------------|
+| `.-GlcNAc`      | Any one residue directly attached to GlcNAc            |
+| `[^Fuc]-GlcNAc` | One residue other than Fuc directly attached to GlcNAc |
+
+`[^Fuc]` does **not** mean “no fucose branch.” A fucosylated LacNAc
+still matches `[^Fuc]-GlcNAc`, because its Gal is not Fuc. Use `(!Fuc-)`
+when you want the branch to be absent. Also notice that `^` has
+different meanings inside `[^Fuc]` and at the start of `^Gal`.
+
+## Count and retrieve what you found
+
+So far, we have asked whether a feature is present.
+[`rex_count()`](https://glycoverse.github.io/glyrex/reference/rex_query.md)
+tells you how many matches were found in each structure:
+
+``` r
+
+rex_count(glycans, "Man")
+#>      lacnac  sialylated fucosylated        both     mannose 
+#>           0           0           0           0           2
+```
+
+The mannose example contains two Man residues; the other structures
+contain none. These are counts within each supplied structure, not
+measurements of abundance in a sample.
+
+To retrieve the matching portion, use
+[`rex_extract()`](https://glycoverse.github.io/glyrex/reference/rex_query.md):
+
+``` r
+
+rex_extract(glycans, "Galb4-GlcNAc")
+#>                lacnac            sialylated           fucosylated 
+#> "Gal(b1-4)GlcNAc(b1-" "Gal(b1-4)GlcNAc(b1-" "Gal(b1-4)GlcNAc(b1-" 
+#>                  both               mannose 
+#> "Gal(b1-4)GlcNAc(b1-"                    NA
+```
+
+The first four results contain the matched Gal–GlcNAc portion, without
+the additional Neu5Ac or Fuc residues. The mannose example gives `NA`
+because it has no match. Results use a standardized IUPAC
+representation, so their written form may differ from your input. An
+extracted fragment can retain linkage information from where it was
+attached to the rest of the glycan. The ending `GlcNAc(b1-` retains the
+β anomer and donor position 1 at the fragment’s reducing end; it does
+not indicate an extra residue or a failed search.
+
+[`rex_extract()`](https://glycoverse.github.io/glyrex/reference/rex_query.md)
+returns one match per structure. To retrieve all matches, use
+[`rex_extract_all()`](https://glycoverse.github.io/glyrex/reference/rex_query.md):
+
+``` r
+
+rex_extract_all(glycans["mannose"], "Man")
+#> $mannose
+#> [1] "Man(a1-" "Man(a1-"
+```
+
+The results are collected separately for each input glycan. The two Man
+residues are separate matches even though they are the same kind of
+sugar.
+
+For more complex patterns, matches can overlap. glyrex keeps one
+successful match per starting residue, then removes matches wholly
+contained in a larger match. When several remain, larger matches come
+first, followed by the package’s residue order. Thus “first” does not
+mean the leftmost piece of the written input, and counts are not
+necessarily counts of independent, non-overlapping motifs. See
+[`?rex_detect`](https://glycoverse.github.io/glyrex/reference/rex_query.md)
+for details.
+
+## Put it together: sialylated LacNAc without a local Fuc branch
+
+We now have everything needed for our opening question. Build it up from
+features you already know:
+
+| Step | Pattern                   | Question                                |
+|:-----|:--------------------------|:----------------------------------------|
+| 1    | `Galb4-GlcNAc`            | Is there a Galβ1–4GlcNAc unit?          |
+| 2    | `Sia-Galb4-GlcNAc`        | Is a sialic acid attached to its Gal?   |
+| 3    | `Sia-Galb4-(!Fuc-)GlcNAc` | Does its GlcNAc also lack a Fuc branch? |
+
+``` r
+
+pattern <- "Sia-Galb4-(!Fuc-)GlcNAc"
+rex_subset(glycans, pattern)
+#>                        sialylated 
+#> "Neu5Ac(a2-3)Gal(b1-4)GlcNAc(b1-"
+```
+
+Only `sialylated` remains. The example labelled `both` has the
+sialylated unit but fails the no-Fuc-branch condition. This pattern
+leaves the sialic acid linkage unspecified and does not require it to be
+terminal. If those conditions matter, you could start with `^Siaa3-`
+instead.
+
+For a table of your own structures, you can add the answer as a new
+column:
+
+``` r
+
+results <- data.frame(
+  glycan_id = names(glycans),
+  structure = unname(glycans)
+)
+results$has_feature <- rex_detect(results$structure, pattern)
+results
+#>     glycan_id                                  structure has_feature
+#> 1      lacnac                        Gal(b1-4)GlcNAc(b1-       FALSE
+#> 2  sialylated            Neu5Ac(a2-3)Gal(b1-4)GlcNAc(b1-        TRUE
+#> 3 fucosylated             Gal(b1-4)[Fuc(a1-3)]GlcNAc(b1-       FALSE
+#> 4        both Neu5Ac(a2-3)Gal(b1-4)[Fuc(a1-3)]GlcNAc(b1-       FALSE
+#> 5     mannose                           Man(a1-3)Man(a1-       FALSE
+```
+
+You can replace `results$structure` with the column containing your own
+glycan structures. Start by checking a few known positive and negative
+examples before applying a new pattern to a large collection.
+
+## A few practical points
+
+**Unknown is not the same as absent.** Missing structures give `NA`,
+rather than `FALSE`, when you use
+[`rex_detect()`](https://glycoverse.github.io/glyrex/reference/rex_query.md).
+[`rex_subset()`](https://glycoverse.github.io/glyrex/reference/rex_query.md)
+leaves missing results out:
+
+``` r
+
+rex_detect(c("Gal(b1-4)GlcNAc(b1-", NA_character_), "Gal")
+#> [1] TRUE   NA
+```
+
+**An unknown linkage can match a specified one.** glyrex treats `?` in
+linkage information as compatible with a specified value. For example:
+
+``` r
+
+rex_detect("Gal(b1-?)GlcNAc(b1-", "Galb4-GlcNAc")
+#> [1] TRUE
+```
+
+This `TRUE` means that the structure is compatible with the requested
+linkage; it does not establish that the linkage is β1–4. Likewise, an
+ambiguous position such as `3/4` is compatible with `4`. Take this into
+account when interpreting results from incompletely characterized
+glycans.
+
+**You need structural information.** A composition such as a total count
+of Hex and HexNAc does not tell you which residues are attached to
+which. The examples here use connected structures with defined branch
+attachments. Structures with unattached parts or unspecified branch
+placement are not supported. Invalid structure descriptions produce an
+error rather than a negative result. Other notations accepted by
+[`glyparse::auto_parse()`](https://glycoverse.github.io/glyparse/reference/auto_parse.html)
+and glyrepr structure objects can also be used.
+
+## When you need a little more
+
+You can stop here and already answer many structural questions. Two
+optional features may help as your searches grow.
+
+### Repeated units
+
+Put a unit in square brackets and follow it with the number of
+repetitions in braces. For example, `[Galb4-GlcNAcb3]{2}` requires two
+consecutive copies of that disaccharide unit:
+
+``` r
+
+repeat_glycan <- "Gal(b1-4)GlcNAc(b1-3)Gal(b1-4)GlcNAc(b1-3)Gal(b1-"
+rex_detect(repeat_glycan, "[Galb4-GlcNAcb3]{2}")
+#> [1] TRUE
+```
+
+The `b3` on each GlcNAc describes its attachment towards the reducing
+end, including the attachment of the second unit to the following Gal.
+`{2,4}` allows two to four copies, and `+` allows one or more. Keep the
+square brackets: write `[Gal]+`, not `Gal+`.
+
+### Save a pattern for reuse
+
+If you want to use the same pattern in several calls,
+[`rex_compile()`](https://glycoverse.github.io/glyrex/reference/rex_compile.md)
+checks its notation and prepares it for reuse:
+
+``` r
+
+my_pattern <- rex_compile("Sia-Galb4-(!Fuc-)GlcNAc")
+rex_detect(glycans, my_pattern)
+#>      lacnac  sialylated fucosylated        both     mannose 
+#>       FALSE        TRUE       FALSE       FALSE       FALSE
+rex_count(glycans, my_pattern)
+#>      lacnac  sialylated fucosylated        both     mannose 
+#>           0           1           0           0           0
+```
+
+This is optional; passing the pattern in quotation marks works too.
+
+For more examples and the full pattern notation, see
+[`?rex_compile`](https://glycoverse.github.io/glyrex/reference/rex_compile.md).
+For functions that count, extract, or locate matches, see
+[`?rex_detect`](https://glycoverse.github.io/glyrex/reference/rex_query.md).
+As you explore, keep building patterns one biological condition at a
+time: a residue, its neighbour, a linkage, and then any branch or end
+condition that your question needs.
