@@ -158,12 +158,12 @@ rex_detect(linkages, "Galb4-GlcNAc")
 rex_detect(linkages, "Galb3/4-GlcNAc")
 ```
 
-**Unknown linkage information is compatible with specified information.**
-The unknown-position example matches `Galb4-GlcNAc`. That result means the
-structure could satisfy the pattern; it does not prove a β1–4 linkage.
-Unknown fields in either the input or the pattern act as wildcards.
-Ambiguous positions match when they share a possible value: `3/4` is
-compatible with `4`, but not with `6`.
+**The glycan must be at least as specific as the pattern.**
+Unknown fields in the pattern act as wildcards; unknown input fields cannot
+satisfy a specified value. The unknown-position example therefore does not
+match `Galb4-GlcNAc`. Every possible input position must be allowed by the
+pattern: input `4` matches pattern `3/4`, but input `3/4` does not match
+pattern `4`. Equal sets of possible positions match.
 
 A linkage suffix is checked even on the final residue of a pattern. For
 example, `GlcNAcb3` requires that GlcNAc attach onwards by β1–3, although
@@ -442,8 +442,8 @@ Try known positive and negative structures, and inspect extracted matches.
 The input must describe a supported connected structure. Composition alone
 cannot answer connectivity questions, and floating parts or unspecified
 branch placement are not supported. Invalid structures produce errors rather
-than `FALSE`. Most importantly, a match involving unknown linkages means
-compatibility with the pattern, not experimental confirmation of those linkages.
+than `FALSE`. Unspecified pattern fields accept unknown input information,
+but specified constraints require input information at least as specific.
 
 See `?rex_compile` for compiling reusable patterns and `?rex_detect` for query
 functions and result conventions.

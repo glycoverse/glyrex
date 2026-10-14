@@ -38,13 +38,13 @@ rex_graph <- function(g) {
 }
 
 rex_field <- function(want, have) {
-  if (is.null(want) || want == "?" || have == "?") {
+  if (is.null(want) || want == "?") {
     return(TRUE)
   }
-  # glycowork treats ambiguity as compatibility, rather than certainty.
+  # The glycan must be at least as specific as the pattern.
   values <- strsplit(have, "/", fixed = TRUE)[[1L]]
   length(values) > 0L &&
-    any(values %in% strsplit(want, "/", fixed = TRUE)[[1L]])
+    all(values %in% strsplit(want, "/", fixed = TRUE)[[1L]])
 }
 
 rex_atom <- function(term, id, ctx) {

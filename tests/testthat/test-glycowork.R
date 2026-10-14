@@ -1,7 +1,8 @@
 # Cases adapted from BojarLab/glycowork tests/test_core_functions.py at
 # 8e178129e99477dfdc38a055a34886bbbe0e02ea (MIT; see fixtures/LICENSE-glycowork).
 # Excludes compact-IUPAC input conversion and explicitly unsupported floating
-# inputs. Compare canonical structures after neutralizing only root anomers:
+# inputs. The fixture marks the deliberate strict-linkage divergence.
+# Compare canonical structures after neutralizing only root anomers:
 # glycowork omits them, while glyrex deliberately preserves them.
 test_that("glycowork reference cases retain structural semantics", {
   cases <- dget(test_path("fixtures", "glycowork.R"))

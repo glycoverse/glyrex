@@ -23,8 +23,8 @@ test_that("paths and branches match graph topology", {
 test_that("reducing-end anomers and extracted fragment anomers are preserved", {
   x <- c("Gal(b1-4)GlcNAc(a1-", "Gal(b1-4)GlcNAc(b1-", "Gal(b1-4)GlcNAc(?1-")
   expect_equal(rex_detect(x, "GlcNAc$"), rep(TRUE, 3))
-  expect_equal(rex_detect(x, "GlcNAca$"), c(TRUE, FALSE, TRUE))
-  expect_equal(rex_detect(x, "GlcNAcb$"), c(FALSE, TRUE, TRUE))
+  expect_equal(rex_detect(x, "GlcNAca$"), c(TRUE, FALSE, FALSE))
+  expect_equal(rex_detect(x, "GlcNAcb$"), c(FALSE, TRUE, FALSE))
   expect_equal(rex_detect(x, "GlcNAca4$"), rep(FALSE, 3))
   expect_equal(rex_extract(x, "Gal"), rep("Gal(b1-", 3))
   expect_equal(
@@ -75,8 +75,8 @@ test_that("assertions consume no nodes and bind to the right direction", {
 })
 
 test_that("linkage ambiguity and residue modifications follow structural matching", {
-  expect_equal(rex_detect("Gal(b1-?)GlcNAc", "Galb3/4-GlcNAc"), TRUE)
-  expect_equal(rex_detect("Gal(b1-3/4)GlcNAc", "Galb4-GlcNAc"), TRUE)
+  expect_equal(rex_detect("Gal(b1-?)GlcNAc", "Galb3/4-GlcNAc"), FALSE)
+  expect_equal(rex_detect("Gal(b1-3/4)GlcNAc", "Galb4-GlcNAc"), FALSE)
   expect_equal(rex_detect("Gal(b1-3)GlcNAc", "Galb4-GlcNAc"), FALSE)
   expect_equal(
     rex_detect("Gal6S(b1-4)GlcNAc", c("Gal6S", "Gal", ".")),
@@ -141,4 +141,50 @@ test_that("absence groups accept linkage suffixes and branch paths", {
     TRUE
   )
   expect_equal(rex_detect("GlcNAc", "(!Fuc-)"), FALSE)
+})
+
+
+test_that("linkage constraints require glycan-side certainty", {
+  x <- c(
+    "Gal(b1-4)GlcNAc",
+    "Gal(?1-4)GlcNAc",
+    "Gal(b?-4)GlcNAc",
+    "Gal(b1-?)GlcNAc",
+    "Gal(b1-3/4)GlcNAc",
+    "Gal(b1-3/6)GlcNAc",
+    "Gal(b1-6)GlcNAc"
+  )
+  expect_equal(
+    rex_detect(x, "Galb4-GlcNAc"),
+    c(TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE)
+  )
+  expect_equal(
+    rex_detect(x, "Galb3/4-GlcNAc"),
+    c(TRUE, FALSE, FALSE, FALSE, TRUE, FALSE, FALSE)
+  )
+  expect_equal(
+    rex_detect(x, "Gal?4-GlcNAc"),
+    c(TRUE, TRUE, FALSE, FALSE, FALSE, FALSE, FALSE)
+  )
+  expect_equal(
+    rex_detect(x, "Galb?-GlcNAc"),
+    c(TRUE, FALSE, FALSE, TRUE, TRUE, TRUE, TRUE)
+  )
+  expect_equal(rex_detect(x, "Gal-GlcNAc"), rep(TRUE, length(x)))
+  expect_equal(
+    rex_detect(x, rex_compile("Galb3/4-GlcNAc")),
+    rex_detect(x, "Galb3/4-GlcNAc")
+  )
+  expect_equal(rex_count(x, "Galb4-GlcNAc"), c(1L, rep(0L, 6)))
+  expect_equal(rex_extract(x, "Galb4-GlcNAc")[-1], rep(NA_character_, 6))
+  expect_equal(rex_detect("Gal(b1-3/4)GlcNAc", "Galb4/3-GlcNAc"), TRUE)
+})
+
+test_that("residue classes only broaden the pattern", {
+  expect_equal(rex_detect(c("Gal", "Hex", "Man"), "Gal"), c(TRUE, FALSE, FALSE))
+  expect_equal(rex_detect(c("Gal", "Hex", "Man"), "Hex"), rep(TRUE, 3))
+  expect_equal(rex_detect(c("GlcNAc", "HexNAc"), "GlcNAc"), c(TRUE, FALSE))
+  expect_equal(rex_detect(c("GlcNAc", "HexNAc"), "HexNAc"), c(TRUE, TRUE))
+  expect_equal(rex_detect(c("Gal", "Hex"), "."), c(TRUE, TRUE))
+  expect_equal(rex_detect(c("Neu5Ac", "Neu5Gc", "Kdn"), "Sia"), rep(TRUE, 3))
 })

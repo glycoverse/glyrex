@@ -26,7 +26,8 @@ list(
   list(
     pattern = "Fuc-Galb3/4-([Hex|Fuc]-)*HexNAc",
     glycan = "Fuc(a1-2)Gal(b1-?)[Fuc(a1-?)]GlcNAc(b1-6)[Gal(b1-3)]GalNAc",
-    expected = list("Fuc(a1-2)Gal(b1-?)[Fuc(a1-?)]GlcNAc"),
+    # Deliberate divergence: unknown input position cannot satisfy 3/4.
+    expected = FALSE,
     line = 3629L
   ),
   list(
