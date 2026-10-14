@@ -81,17 +81,17 @@
 <span>  <span class="cn">NA_character_</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/rex_compile.html">rex_compile</a></span><span class="op">(</span><span class="st">"Galb4-(Fuca3-)GlcNAc"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="reference/rex_query.html">rex_detect</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">p</span><span class="op">)</span></span>
+<span><span class="fu"><a href="reference/rex_detect.html">rex_detect</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">p</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1]  TRUE FALSE    NA</span></span>
-<span><span class="fu"><a href="reference/rex_query.html">rex_extract</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">p</span><span class="op">)</span></span>
+<span><span class="fu"><a href="reference/rex_extract.html">rex_extract</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">p</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "Fuc(a1-3)[Gal(b1-4)]GlcNAc(a1-" NA</span></span>
 <span><span class="co">#&gt; [3] NA</span></span>
-<span><span class="fu"><a href="reference/rex_query.html">rex_match</a></span><span class="op">(</span><span class="va">x</span>, <span class="st">"(?&lt;antenna&gt;Galb4)-GlcNAc"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="reference/rex_match.html">rex_match</a></span><span class="op">(</span><span class="va">x</span>, <span class="st">"(?&lt;antenna&gt;Galb4)-GlcNAc"</span><span class="op">)</span></span>
 <span><span class="co">#&gt;      match                 antenna</span></span>
 <span><span class="co">#&gt; [1,] "Gal(b1-4)GlcNAc(a1-" "Gal(b1-"</span></span>
 <span><span class="co">#&gt; [2,] "Gal(b1-4)GlcNAc(b1-" "Gal(b1-"</span></span>
 <span><span class="co">#&gt; [3,] NA                    NA</span></span>
-<span><span class="fu"><a href="reference/rex_query.html">rex_locate_all</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">p</span><span class="op">)</span></span>
+<span><span class="fu"><a href="reference/rex_locate_all.html">rex_locate_all</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">p</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [[1]]</span></span>
 <span><span class="co">#&gt;     nodes edges</span></span>
 <span><span class="co">#&gt; 1 1, 2, 3  1, 2</span></span>

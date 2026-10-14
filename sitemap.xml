@@ -12,6 +12,15 @@
 <url><loc>https://glycoverse.github.io/glyrex/news/index.html</loc></url>
 <url><loc>https://glycoverse.github.io/glyrex/reference/index.html</loc></url>
 <url><loc>https://glycoverse.github.io/glyrex/reference/rex_compile.html</loc></url>
-<url><loc>https://glycoverse.github.io/glyrex/reference/rex_query.html</loc></url>
+<url><loc>https://glycoverse.github.io/glyrex/reference/rex_count.html</loc></url>
+<url><loc>https://glycoverse.github.io/glyrex/reference/rex_detect.html</loc></url>
+<url><loc>https://glycoverse.github.io/glyrex/reference/rex_extract.html</loc></url>
+<url><loc>https://glycoverse.github.io/glyrex/reference/rex_extract_all.html</loc></url>
+<url><loc>https://glycoverse.github.io/glyrex/reference/rex_locate.html</loc></url>
+<url><loc>https://glycoverse.github.io/glyrex/reference/rex_locate_all.html</loc></url>
+<url><loc>https://glycoverse.github.io/glyrex/reference/rex_match.html</loc></url>
+<url><loc>https://glycoverse.github.io/glyrex/reference/rex_match_all.html</loc></url>
+<url><loc>https://glycoverse.github.io/glyrex/reference/rex_subset.html</loc></url>
+<url><loc>https://glycoverse.github.io/glyrex/reference/rex_which.html</loc></url>
 </urlset>
 

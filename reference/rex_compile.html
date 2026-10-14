@@ -194,13 +194,13 @@ must contain at least one residue.</p>
 
 <p>Use <code>(?&lt;name&gt;...)</code> to give a matched path a name. For example,
 <code>(?&lt;terminal&gt;Gal)-GlcNAc</code> matches the two-residue path and captures its Gal
-as <code>terminal</code>. <code><a href="rex_query.html">rex_match()</a></code> and <code><a href="rex_query.html">rex_match_all()</a></code> return the full match
+as <code>terminal</code>. <code><a href="rex_match.html">rex_match()</a></code> and <code><a href="rex_match_all.html">rex_match_all()</a></code> return the full match
 in the <code>match</code> column and captured fragments in their named columns.
 This named-capture syntax is an extension to glycowork.</p>
 <p>Capture names must start with a letter, contain only letters, digits,
 or underscores, and be unique within the pattern. The name <code>match</code> is
 reserved. Use <code>(?:...)</code> when grouping without a named capture is desired.
-See <code><a href="rex_query.html">rex_detect()</a></code> for how matches are ordered and counted, including
+See <code><a href="rex_detect.html">rex_detect()</a></code> for how matches are ordered and counted, including
 overlapping matches and matches contained within larger ones.</p>
 </div>
 
@@ -209,9 +209,9 @@ overlapping matches and matches contained within larger ones.</p>
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu">rex_compile</span><span class="op">(</span><span class="st">"Galb4-(Fuca3-)GlcNAc"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="rex_query.html">rex_detect</a></span><span class="op">(</span><span class="st">"Gal(b1-4)[Fuc(a1-3)]GlcNAc"</span>, <span class="va">p</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="rex_detect.html">rex_detect</a></span><span class="op">(</span><span class="st">"Gal(b1-4)[Fuc(a1-3)]GlcNAc"</span>, <span class="va">p</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] TRUE</span>
-<span class="r-in"><span><span class="fu"><a href="rex_query.html">rex_detect</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"GlcNAc(a1-"</span>, <span class="st">"GlcNAc(b1-"</span><span class="op">)</span>, <span class="st">"GlcNAca$"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="rex_detect.html">rex_detect</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"GlcNAc(a1-"</span>, <span class="st">"GlcNAc(b1-"</span><span class="op">)</span>, <span class="st">"GlcNAca$"</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1]  TRUE FALSE</span>
 </code></pre></div>
     </div>

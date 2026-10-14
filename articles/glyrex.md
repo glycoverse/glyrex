@@ -112,13 +112,13 @@ rex_detect(glycans, "Gal")
 #>        TRUE        TRUE        TRUE        TRUE       FALSE
 ```
 
-[`rex_detect()`](https://glycoverse.github.io/glyrex/reference/rex_query.md)
+[`rex_detect()`](https://glycoverse.github.io/glyrex/reference/rex_detect.md)
 answers once for each structure, keeping the same order and names.
 `TRUE` means the feature was found; `FALSE` means it was not. Here, the
 first four structures contain Gal, and the mannose example does not.
 
 To keep the structures themselves, use
-[`rex_subset()`](https://glycoverse.github.io/glyrex/reference/rex_query.md):
+[`rex_subset()`](https://glycoverse.github.io/glyrex/reference/rex_subset.md):
 
 ``` r
 
@@ -318,7 +318,7 @@ different meanings inside `[^Fuc]` and at the start of `^Gal`.
 ## Count and retrieve what you found
 
 So far, we have asked whether a feature is present.
-[`rex_count()`](https://glycoverse.github.io/glyrex/reference/rex_query.md)
+[`rex_count()`](https://glycoverse.github.io/glyrex/reference/rex_count.md)
 tells you how many matches were found in each structure:
 
 ``` r
@@ -333,7 +333,7 @@ contain none. These are counts within each supplied structure, not
 measurements of abundance in a sample.
 
 To retrieve the matching portion, use
-[`rex_extract()`](https://glycoverse.github.io/glyrex/reference/rex_query.md):
+[`rex_extract()`](https://glycoverse.github.io/glyrex/reference/rex_extract.md):
 
 ``` r
 
@@ -353,9 +353,9 @@ attached to the rest of the glycan. The ending `GlcNAc(b1-` retains the
 β anomer and donor position 1 at the fragment’s reducing end; it does
 not indicate an extra residue or a failed search.
 
-[`rex_extract()`](https://glycoverse.github.io/glyrex/reference/rex_query.md)
+[`rex_extract()`](https://glycoverse.github.io/glyrex/reference/rex_extract.md)
 returns one match per structure. To retrieve all matches, use
-[`rex_extract_all()`](https://glycoverse.github.io/glyrex/reference/rex_query.md):
+[`rex_extract_all()`](https://glycoverse.github.io/glyrex/reference/rex_extract_all.md):
 
 ``` r
 
@@ -374,7 +374,7 @@ contained in a larger match. When several remain, larger matches come
 first, followed by the package’s residue order. Thus “first” does not
 mean the leftmost piece of the written input, and counts are not
 necessarily counts of independent, non-overlapping motifs. See
-[`?rex_detect`](https://glycoverse.github.io/glyrex/reference/rex_query.md)
+[`?rex_detect`](https://glycoverse.github.io/glyrex/reference/rex_detect.md)
 for details.
 
 ## Put it together: sialylated LacNAc without a local Fuc branch
@@ -429,8 +429,8 @@ examples before applying a new pattern to a large collection.
 
 **Unknown is not the same as absent.** Missing structures give `NA`,
 rather than `FALSE`, when you use
-[`rex_detect()`](https://glycoverse.github.io/glyrex/reference/rex_query.md).
-[`rex_subset()`](https://glycoverse.github.io/glyrex/reference/rex_query.md)
+[`rex_detect()`](https://glycoverse.github.io/glyrex/reference/rex_detect.md).
+[`rex_subset()`](https://glycoverse.github.io/glyrex/reference/rex_subset.md)
 leaves missing results out:
 
 ``` r
@@ -508,7 +508,7 @@ This is optional; passing the pattern in quotation marks works too.
 For more examples and the full pattern notation, see
 [`?rex_compile`](https://glycoverse.github.io/glyrex/reference/rex_compile.md).
 For functions that count, extract, or locate matches, see
-[`?rex_detect`](https://glycoverse.github.io/glyrex/reference/rex_query.md).
+[`?rex_detect`](https://glycoverse.github.io/glyrex/reference/rex_detect.md).
 As you explore, keep building patterns one biological condition at a
 time: a residue, its neighbour, a linkage, and then any branch or end
 condition that your question needs.

@@ -24,17 +24,17 @@
   location anchors, lookaround, and named captures, including glyrepr
   reducing-end configuration constraints.
 
-- [`rex_detect()`](https://glycoverse.github.io/glyrex/reference/rex_query.md),
-  [`rex_count()`](https://glycoverse.github.io/glyrex/reference/rex_query.md),
-  [`rex_extract()`](https://glycoverse.github.io/glyrex/reference/rex_query.md),
-  [`rex_extract_all()`](https://glycoverse.github.io/glyrex/reference/rex_query.md),
-  [`rex_match()`](https://glycoverse.github.io/glyrex/reference/rex_query.md),
-  [`rex_match_all()`](https://glycoverse.github.io/glyrex/reference/rex_query.md),
-  [`rex_locate()`](https://glycoverse.github.io/glyrex/reference/rex_query.md),
-  [`rex_locate_all()`](https://glycoverse.github.io/glyrex/reference/rex_query.md),
-  [`rex_subset()`](https://glycoverse.github.io/glyrex/reference/rex_query.md),
+- [`rex_detect()`](https://glycoverse.github.io/glyrex/reference/rex_detect.md),
+  [`rex_count()`](https://glycoverse.github.io/glyrex/reference/rex_count.md),
+  [`rex_extract()`](https://glycoverse.github.io/glyrex/reference/rex_extract.md),
+  [`rex_extract_all()`](https://glycoverse.github.io/glyrex/reference/rex_extract_all.md),
+  [`rex_match()`](https://glycoverse.github.io/glyrex/reference/rex_match.md),
+  [`rex_match_all()`](https://glycoverse.github.io/glyrex/reference/rex_match_all.md),
+  [`rex_locate()`](https://glycoverse.github.io/glyrex/reference/rex_locate.md),
+  [`rex_locate_all()`](https://glycoverse.github.io/glyrex/reference/rex_locate_all.md),
+  [`rex_subset()`](https://glycoverse.github.io/glyrex/reference/rex_subset.md),
   and
-  [`rex_which()`](https://glycoverse.github.io/glyrex/reference/rex_query.md)
+  [`rex_which()`](https://glycoverse.github.io/glyrex/reference/rex_which.md)
   provide stringr-style structural queries on IUPAC strings and glyrepr
   structures.
 

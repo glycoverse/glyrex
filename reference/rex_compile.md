@@ -175,9 +175,9 @@ must contain at least one residue.
 Use `(?<name>...)` to give a matched path a name. For example,
 `(?<terminal>Gal)-GlcNAc` matches the two-residue path and captures its
 Gal as `terminal`.
-[`rex_match()`](https://glycoverse.github.io/glyrex/reference/rex_query.md)
+[`rex_match()`](https://glycoverse.github.io/glyrex/reference/rex_match.md)
 and
-[`rex_match_all()`](https://glycoverse.github.io/glyrex/reference/rex_query.md)
+[`rex_match_all()`](https://glycoverse.github.io/glyrex/reference/rex_match_all.md)
 return the full match in the `match` column and captured fragments in
 their named columns. This named-capture syntax is an extension to
 glycowork.
@@ -186,7 +186,7 @@ Capture names must start with a letter, contain only letters, digits, or
 underscores, and be unique within the pattern. The name `match` is
 reserved. Use `(?:...)` when grouping without a named capture is
 desired. See
-[`rex_detect()`](https://glycoverse.github.io/glyrex/reference/rex_query.md)
+[`rex_detect()`](https://glycoverse.github.io/glyrex/reference/rex_detect.md)
 for how matches are ordered and counted, including overlapping matches
 and matches contained within larger ones.
 
