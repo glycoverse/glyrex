@@ -439,20 +439,22 @@ rex_detect(c("Gal(b1-4)GlcNAc(b1-", NA_character_), "Gal")
 #> [1] TRUE   NA
 ```
 
-**An unknown linkage can match a specified one.** glyrex treats `?` in
-linkage information as compatible with a specified value. For example:
+**The input cannot be more ambiguous than the pattern.** As in
+glymotif’s strict mode, a concrete linkage can satisfy a broader
+pattern, but an unknown linkage cannot satisfy a specified one:
 
 ``` r
 
-rex_detect("Gal(b1-?)GlcNAc(b1-", "Galb4-GlcNAc")
+rex_detect("Gal(b1-?)GlcNAc(b1-", "Galb4-GlcNAc") # FALSE
+#> [1] FALSE
+rex_detect("Gal(b1-4)GlcNAc(b1-", "Galb3/4-GlcNAc") # TRUE
 #> [1] TRUE
 ```
 
-This `TRUE` means that the structure is compatible with the requested
-linkage; it does not establish that the linkage is β1–4. Likewise, an
-ambiguous position such as `3/4` is compatible with `4`. Take this into
-account when interpreting results from incompletely characterized
-glycans.
+All possible input positions must be allowed by the pattern. Input `3/4`
+does not match pattern `4`, while equal position sets match. Unknown or
+omitted pattern fields remain unrestricted. Likewise, concrete `Gal`
+matches generic `Hex`, but input `Hex` cannot satisfy pattern `Gal`.
 
 **You need structural information.** A composition such as a total count
 of Hex and HexNAc does not tell you which residues are attached to
@@ -505,7 +507,10 @@ rex_count(glycans, my_pattern)
 
 This is optional; passing the pattern in quotation marks works too.
 
-For more examples and the full pattern notation, see
+For a detailed explanation of each symbol, with no prior regex knowledge
+required, see [Glyco-regex syntax, step by
+step](https://glycoverse.github.io/glyrex/articles/glyco-regex-syntax.md).
+For details on compiling reusable patterns, see
 [`?rex_compile`](https://glycoverse.github.io/glyrex/reference/rex_compile.md).
 For functions that count, extract, or locate matches, see
 [`?rex_detect`](https://glycoverse.github.io/glyrex/reference/rex_detect.md).
