@@ -6,6 +6,9 @@ articles:
   - title: Getting started
     contents:
       - glyrex
+  - title: Pattern syntax
+    contents:
+      - glyco-regex-syntax
 
 reference:
   - title: Structural regular expressions
