@@ -11,4 +11,13 @@ reference:
   - title: Structural regular expressions
     contents:
       - rex_compile
-      - rex_query
+      - rex_detect
+      - rex_count
+      - rex_extract
+      - rex_extract_all
+      - rex_match
+      - rex_match_all
+      - rex_locate
+      - rex_locate_all
+      - rex_which
+      - rex_subset

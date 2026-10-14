@@ -1,61 +1,3 @@
-#' Query Glycan Structures with Regular Expressions
-#'
-#' A stringr-like interface to graph-native glycan pattern matching.
-#'
-#' @param glycans A character vector of glycan expressions in any format
-#'   supported by [glyparse::auto_parse()], a `glyrepr_structure` vector, or
-#'   one glyrepr-compatible `igraph`. Character inputs may mix formats;
-#'   malformed structures throw an error.
-#' @param pattern A character vector of patterns or one [rex_compile()] object.
-#'   Inputs recycle only from length one. Missing glycans or patterns propagate.
-#' @param negate Invert detection when `TRUE`; missing values remain missing.
-#' @returns
-#' `rex_detect()` returns logicals; `rex_count()` returns integers.
-#' `rex_extract()` returns the first match, or `NA`; `rex_extract_all()`
-#' returns a list of vectors (empty for no match, length-one `NA` for missing).
-#' Extraction returns canonical glyrepr IUPAC strings for character input and
-#' glyrepr structure vectors for structure or graph input. A cut fragment
-#' retains the anomer and donor position of its former attachment linkage.
-#'
-#' `rex_match()` returns a character matrix with `match` followed by named
-#' capture columns; unmatched captures are `NA`. `rex_match_all()` returns
-#' a list of such matrices, with zero rows for no match and one missing row
-#' for missing input. Vectorized patterns must have identical capture names.
-#'
-#' `rex_locate()` returns a data frame with integer list-columns `nodes` and
-#' `edges`; `rex_locate_all()` returns a list of these data frames. IDs are
-#' one-based and refer to the input graph, or the canonical graph obtained
-#' from character input, as in `glyrepr::structure_nodes()` and
-#' `glyrepr::structure_edges()`. Only edges within the match are returned.
-#' First locations use `NA_integer_` for no match or missing input; all
-#' locations use zero rows for no match and one missing row for missing input.
-#'
-#' `rex_subset()` preserves the input representation and names;
-#' `rex_which()` returns matching indices. Both omit missing results and
-#' require `pattern` to have length one or the length of `glycans`.
-#'
-#' @details
-#' The matching unit is a connected structural trace. As in glycowork, the
-#' first successful trace per starting node is retained, then strict subsets
-#' of other traces are removed. Distinct branches with equal sequences remain
-#' distinct matches. Matches are ordered by decreasing residue count and then
-#' starting node ID. Repeats are greedy unless marked lazy; successful traces
-#' may overlap. Counts therefore need not equal text-regex counts.
-#' Only connected rooted trees are supported; floating topology or floating
-#' substituents are rejected explicitly. See [rex_compile()] for syntax.
-#'
-#' @examples
-#' x <- c("Gal(b1-4)GlcNAc", "Fuc(a1-3)GlcNAc", NA)
-#' rex_detect(x, "Gal-HexNAc")
-#' rex_count(x, "HexNAc")
-#' rex_extract_all(x, "HexNAc")
-#' rex_match(x, "(?<terminal>Gal)-GlcNAc")
-#' rex_locate_all(x, "Gal-GlcNAc")
-#' rex_subset(x, "Gal")
-#' rex_which(x, "Fuc")
-#' @name rex_query
-NULL
-
 rex_queries <- function(glycans, pattern) {
   graph_input <- inherits(glycans, "igraph")
   structure_input <- inherits(glycans, "glyrepr_structure")
@@ -121,7 +63,35 @@ rex_negate <- function(negate) {
   }
 }
 
-#' @rdname rex_query
+#' Detect Structural Matches in Glycans
+#'
+#' Test whether each glycan contains a structural pattern.
+#'
+#' @param glycans A character vector of glycan expressions in any format
+#'   supported by [glyparse::auto_parse()], a `glyrepr_structure` vector, or
+#'   one glyrepr-compatible `igraph`. Character inputs may mix formats;
+#'   malformed structures throw an error.
+#' @param pattern A character vector of patterns or one [rex_compile()] object.
+#'   Inputs recycle only from length one. Missing glycans or patterns propagate.
+#' @param negate Invert detection when `TRUE`; missing values remain missing.
+#' @returns
+#' A logical vector. Missing glycans or patterns return `NA`.
+#'
+#' @details
+#' The matching unit is a connected structural trace. As in glycowork, the
+#' first successful trace per starting node is retained, then strict subsets
+#' of other traces are removed. Distinct branches with equal sequences remain
+#' distinct matches. Matches are ordered by decreasing residue count and then
+#' starting node ID. Repeats are greedy unless marked lazy; successful traces
+#' may overlap. Counts therefore need not equal text-regex counts.
+#' Only connected rooted trees are supported; floating topology or floating
+#' substituents are rejected explicitly. See [rex_compile()] for syntax.
+#'
+#' @family glycan queries
+#' @examples
+#' x <- c("Gal(b1-4)GlcNAc", "Fuc(a1-3)GlcNAc", NA)
+#' rex_detect(x, "Gal-HexNAc")
+#' rex_detect(x, "Gal", negate = TRUE)
 #' @export
 rex_detect <- function(glycans, pattern, negate = FALSE) {
   rex_negate(negate)
@@ -135,7 +105,20 @@ rex_detect <- function(glycans, pattern, negate = FALSE) {
   if (negate) !result else result
 }
 
-#' @rdname rex_query
+#' Count Structural Matches in Glycans
+#'
+#' Count the structural matches of a pattern in each glycan.
+#'
+#' @inheritParams rex_detect
+#' @returns
+#' An integer vector, with zero for no match and `NA_integer_` for
+#' missing glycans or patterns.
+#'
+#' @inherit rex_detect details
+#' @family glycan queries
+#' @examples
+#' x <- c("Gal(b1-4)GlcNAc", "Fuc(a1-3)GlcNAc", NA)
+#' rex_count(x, "HexNAc")
 #' @export
 rex_count <- function(glycans, pattern) {
   vapply(
@@ -166,13 +149,44 @@ rex_extract_results <- function(results, first) {
   output
 }
 
-#' @rdname rex_query
+#' Extract the First Structural Match
+#'
+#' Extract the first matching fragment from each glycan.
+#'
+#' @inheritParams rex_detect
+#' @returns
+#' A character vector of canonical glyrepr IUPAC strings for character
+#' input, or a glyrepr structure vector for structure or graph input.
+#' No match or missing input returns a missing value. A cut fragment
+#' retains the anomer and donor position of its former attachment linkage.
+#'
+#' @inherit rex_detect details
+#' @family glycan queries
+#' @examples
+#' x <- c("Gal(b1-4)GlcNAc", "Fuc(a1-3)GlcNAc", NA)
+#' rex_extract(x, "HexNAc")
 #' @export
 rex_extract <- function(glycans, pattern) {
   rex_extract_results(rex_queries(glycans, pattern), TRUE)
 }
 
-#' @rdname rex_query
+#' Extract All Structural Matches
+#'
+#' Extract all matching fragments from each glycan.
+#'
+#' @inheritParams rex_detect
+#' @returns
+#' A list of character vectors of canonical glyrepr IUPAC strings for
+#' character input, or glyrepr structure vectors for structure or graph
+#' input. No match returns an empty vector; missing input returns a
+#' length-one missing vector. A cut fragment retains the anomer and donor
+#' position of its former attachment linkage.
+#'
+#' @inherit rex_detect details
+#' @family glycan queries
+#' @examples
+#' x <- c("Gal(b1-4)GlcNAc", "Fuc(a1-3)GlcNAc", NA)
+#' rex_extract_all(x, "HexNAc")
 #' @export
 rex_extract_all <- function(glycans, pattern) {
   rex_extract_results(rex_queries(glycans, pattern), FALSE)
@@ -222,13 +236,45 @@ rex_match_results <- function(results, first) {
   }
 }
 
-#' @rdname rex_query
+#' Extract the First Structural Match and Named Captures
+#'
+#' Extract the first match and its named capture groups from each glycan.
+#'
+#' @inheritParams rex_detect
+#' @returns
+#' A character matrix with one row per input, a `match` column, and
+#' columns for named captures. No match or missing input produces a
+#' missing row; unmatched captures are `NA`. Fragments are canonical
+#' glyrepr IUPAC strings. Vectorized patterns must have identical capture
+#' names.
+#'
+#' @inherit rex_detect details
+#' @family glycan queries
+#' @examples
+#' x <- c("Gal(b1-4)GlcNAc", "Fuc(a1-3)GlcNAc", NA)
+#' rex_match(x, "(?<terminal>Gal)-GlcNAc")
 #' @export
 rex_match <- function(glycans, pattern) {
   rex_match_results(rex_queries(glycans, pattern), TRUE)
 }
 
-#' @rdname rex_query
+#' Extract All Structural Matches and Named Captures
+#'
+#' Extract all matches and their named capture groups from each glycan.
+#'
+#' @inheritParams rex_detect
+#' @returns
+#' A list of character matrices with a `match` column followed by named
+#' capture columns. No match produces zero rows; missing input produces
+#' one missing row. Unmatched captures are `NA`. Fragments are canonical
+#' glyrepr IUPAC strings. Vectorized patterns must have identical capture
+#' names.
+#'
+#' @inherit rex_detect details
+#' @family glycan queries
+#' @examples
+#' x <- c("Gal(b1-4)GlcNAc", "Fuc(a1-3)GlcNAc", NA)
+#' rex_match_all(x, "(?<terminal>Gal)-GlcNAc")
 #' @export
 rex_match_all <- function(glycans, pattern) {
   rex_match_results(rex_queries(glycans, pattern), FALSE)
@@ -262,19 +308,67 @@ rex_locations <- function(results, first) {
   }
 }
 
-#' @rdname rex_query
+#' Locate the First Structural Match
+#'
+#' Locate the nodes and edges of the first match in each glycan.
+#'
+#' @inheritParams rex_detect
+#' @returns
+#' A data frame with integer list-columns `nodes` and `edges`, and one
+#' row per input. No match or missing input uses `NA_integer_` in both
+#' columns. IDs are one-based and refer to the input graph, or the
+#' canonical graph obtained from character input, as in
+#' [glyrepr::structure_nodes()] and [glyrepr::structure_edges()]. Only
+#' edges within the match are returned.
+#'
+#' @inherit rex_detect details
+#' @family glycan queries
+#' @examples
+#' x <- c("Gal(b1-4)GlcNAc", "Fuc(a1-3)GlcNAc", NA)
+#' rex_locate(x, "Gal-GlcNAc")
 #' @export
 rex_locate <- function(glycans, pattern) {
   rex_locations(rex_queries(glycans, pattern), TRUE)
 }
 
-#' @rdname rex_query
+#' Locate All Structural Matches
+#'
+#' Locate the nodes and edges of all matches in each glycan.
+#'
+#' @inheritParams rex_detect
+#' @returns
+#' A list of data frames with integer list-columns `nodes` and `edges`.
+#' No match produces zero rows; missing input produces one row with
+#' `NA_integer_` in both columns. IDs are one-based and refer to the input
+#' graph, or the canonical graph obtained from character input, as in
+#' [glyrepr::structure_nodes()] and [glyrepr::structure_edges()]. Only
+#' edges within the match are returned.
+#'
+#' @inherit rex_detect details
+#' @family glycan queries
+#' @examples
+#' x <- c("Gal(b1-4)GlcNAc", "Fuc(a1-3)GlcNAc", NA)
+#' rex_locate_all(x, "Gal-GlcNAc")
 #' @export
 rex_locate_all <- function(glycans, pattern) {
   rex_locations(rex_queries(glycans, pattern), FALSE)
 }
 
-#' @rdname rex_query
+#' Find Indices of Glycans with Structural Matches
+#'
+#' Return the indices of glycans that match a structural pattern.
+#'
+#' @inheritParams rex_detect
+#' @returns
+#' An integer vector of matching input indices. Missing results are
+#' omitted. The pattern must have length one or the length of `glycans`.
+#'
+#' @inherit rex_detect details
+#' @family glycan queries
+#' @examples
+#' x <- c("Gal(b1-4)GlcNAc", "Fuc(a1-3)GlcNAc", NA)
+#' rex_which(x, "Fuc")
+#' rex_which(x, "Gal", negate = TRUE)
 #' @export
 rex_which <- function(glycans, pattern, negate = FALSE) {
   nx <- if (inherits(glycans, "igraph")) 1L else length(glycans)
@@ -285,7 +379,23 @@ rex_which <- function(glycans, pattern, negate = FALSE) {
   which(rex_detect(glycans, pattern, negate = negate))
 }
 
-#' @rdname rex_query
+#' Subset Glycans by Structural Matches
+#'
+#' Keep glycans that match a structural pattern.
+#'
+#' @inheritParams rex_detect
+#' @returns
+#' A subset preserving the input representation and names. Missing
+#' results are omitted. For a single graph input, returns the graph on a
+#' match and `NULL` otherwise. The pattern must have length one or the
+#' length of `glycans`.
+#'
+#' @inherit rex_detect details
+#' @family glycan queries
+#' @examples
+#' x <- c("Gal(b1-4)GlcNAc", "Fuc(a1-3)GlcNAc", NA)
+#' rex_subset(x, "Gal")
+#' rex_subset(x, "Gal", negate = TRUE)
 #' @export
 rex_subset <- function(glycans, pattern, negate = FALSE) {
   keep <- rex_which(glycans, pattern, negate = negate)
