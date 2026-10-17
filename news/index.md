@@ -1,41 +1,49 @@
 # Changelog
 
-## glyrex 0.0.0.9000
+## glyrex 0.1.0
 
-- Query functions now use `glycans` instead of `string` and
-  automatically parse all formats supported by
+- Initial release.
+
+- Get Started and glyco-regex syntax vignettes introduce structural
+  queries through biological examples.
+
+- New
+  [`rex_compile()`](https://glycoverse.github.io/glyrex/reference/rex_compile.md)
+  validates and compiles reusable glycan patterns with residue classes,
+  linkage constraints, branches, repetition, anchors, lookaround, and
+  named captures.
+
+- New
+  [`rex_count()`](https://glycoverse.github.io/glyrex/reference/rex_count.md)
+  and
+  [`rex_detect()`](https://glycoverse.github.io/glyrex/reference/rex_detect.md)
+  count and detect structural matches. Query functions accept glycan
+  strings in any format supported by
   [`glyparse::auto_parse()`](https://glycoverse.github.io/glyparse/reference/auto_parse.html),
-  including mixed-format vectors.
+  including mixed-format vectors, as well as `glyrepr_structure` vectors
+  and glyrepr-compatible `igraph` objects.
 
-- Branch absence requires `(!branch-)`; bare `!linked-residue` and
-  groups missing the final attachment dash are rejected. `[^A]` always
-  consumes a nonmatching residue, including when A has a linkage
-  constraint.
+- New
+  [`rex_extract()`](https://glycoverse.github.io/glyrex/reference/rex_extract.md)
+  and
+  [`rex_extract_all()`](https://glycoverse.github.io/glyrex/reference/rex_extract_all.md)
+  return matching glycan fragments while preserving reducing-end
+  anomeric information.
 
-- Residue negation uses `[^A]`; the `[!A]` spelling is rejected with
-  migration guidance.
+- New
+  [`rex_locate()`](https://glycoverse.github.io/glyrex/reference/rex_locate.md)
+  and
+  [`rex_locate_all()`](https://glycoverse.github.io/glyrex/reference/rex_locate_all.md)
+  identify the nodes and edges of structural matches.
 
-- `(!...-)` always asserts branch absence: `(!Fuc-)` forbids any Fuc
-  branch at the attachment residue, while `(!Fuca3-)` restricts the
-  forbidden branch to an alpha1-3 linkage.
+- New
+  [`rex_match()`](https://glycoverse.github.io/glyrex/reference/rex_match.md)
+  and
+  [`rex_match_all()`](https://glycoverse.github.io/glyrex/reference/rex_match_all.md)
+  return structural matches and named captures.
 
-- [`rex_compile()`](https://glycoverse.github.io/glyrex/reference/rex_compile.md)
-  compiles glycowork-style glycan patterns with branches, repetition,
-  location anchors, lookaround, and named captures, including glyrepr
-  reducing-end configuration constraints.
-
-- [`rex_detect()`](https://glycoverse.github.io/glyrex/reference/rex_detect.md),
-  [`rex_count()`](https://glycoverse.github.io/glyrex/reference/rex_count.md),
-  [`rex_extract()`](https://glycoverse.github.io/glyrex/reference/rex_extract.md),
-  [`rex_extract_all()`](https://glycoverse.github.io/glyrex/reference/rex_extract_all.md),
-  [`rex_match()`](https://glycoverse.github.io/glyrex/reference/rex_match.md),
-  [`rex_match_all()`](https://glycoverse.github.io/glyrex/reference/rex_match_all.md),
-  [`rex_locate()`](https://glycoverse.github.io/glyrex/reference/rex_locate.md),
-  [`rex_locate_all()`](https://glycoverse.github.io/glyrex/reference/rex_locate_all.md),
-  [`rex_subset()`](https://glycoverse.github.io/glyrex/reference/rex_subset.md),
+- New
+  [`rex_subset()`](https://glycoverse.github.io/glyrex/reference/rex_subset.md)
   and
   [`rex_which()`](https://glycoverse.github.io/glyrex/reference/rex_which.md)
-  provide stringr-style structural queries on IUPAC strings and glyrepr
-  structures.
-
-- Queries reject glycans with floating parts or floating substituents.
+  select matching glycans or their indices.

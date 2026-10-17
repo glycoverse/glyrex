@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">glyrex</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -33,14 +33,15 @@
     </div>
 
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.0.0.9000" id="glyrex-0009000">glyrex 0.0.0.9000<a class="anchor" aria-label="anchor" href="#glyrex-0009000"></a></h2>
-<ul><li><p>Query functions now use <code>glycans</code> instead of <code>string</code> and automatically parse all formats supported by <code><a href="https://glycoverse.github.io/glyparse/reference/auto_parse.html" class="external-link">glyparse::auto_parse()</a></code>, including mixed-format vectors.</p></li>
-<li><p>Branch absence requires <code>(!branch-)</code>; bare <code>!linked-residue</code> and groups missing the final attachment dash are rejected. <code>[^A]</code> always consumes a nonmatching residue, including when A has a linkage constraint.</p></li>
-<li><p>Residue negation uses <code>[^A]</code>; the <code>[!A]</code> spelling is rejected with migration guidance.</p></li>
-<li><p><code>(!...-)</code> always asserts branch absence: <code>(!Fuc-)</code> forbids any Fuc branch at the attachment residue, while <code>(!Fuca3-)</code> restricts the forbidden branch to an alpha1-3 linkage.</p></li>
-<li><p><code><a href="../reference/rex_compile.html">rex_compile()</a></code> compiles glycowork-style glycan patterns with branches, repetition, location anchors, lookaround, and named captures, including glyrepr reducing-end configuration constraints.</p></li>
-<li><p><code><a href="../reference/rex_detect.html">rex_detect()</a></code>, <code><a href="../reference/rex_count.html">rex_count()</a></code>, <code><a href="../reference/rex_extract.html">rex_extract()</a></code>, <code><a href="../reference/rex_extract_all.html">rex_extract_all()</a></code>, <code><a href="../reference/rex_match.html">rex_match()</a></code>, <code><a href="../reference/rex_match_all.html">rex_match_all()</a></code>, <code><a href="../reference/rex_locate.html">rex_locate()</a></code>, <code><a href="../reference/rex_locate_all.html">rex_locate_all()</a></code>, <code><a href="../reference/rex_subset.html">rex_subset()</a></code>, and <code><a href="../reference/rex_which.html">rex_which()</a></code> provide stringr-style structural queries on IUPAC strings and glyrepr structures.</p></li>
-<li><p>Queries reject glycans with floating parts or floating substituents.</p></li>
+<h2 class="pkg-version" data-toc-text="0.1.0" id="glyrex-010">glyrex 0.1.0<a class="anchor" aria-label="anchor" href="#glyrex-010"></a></h2>
+<ul><li><p>Initial release.</p></li>
+<li><p>Get Started and glyco-regex syntax vignettes introduce structural queries through biological examples.</p></li>
+<li><p>New <code><a href="../reference/rex_compile.html">rex_compile()</a></code> validates and compiles reusable glycan patterns with residue classes, linkage constraints, branches, repetition, anchors, lookaround, and named captures.</p></li>
+<li><p>New <code><a href="../reference/rex_count.html">rex_count()</a></code> and <code><a href="../reference/rex_detect.html">rex_detect()</a></code> count and detect structural matches. Query functions accept glycan strings in any format supported by <code><a href="https://glycoverse.github.io/glyparse/reference/auto_parse.html" class="external-link">glyparse::auto_parse()</a></code>, including mixed-format vectors, as well as <code>glyrepr_structure</code> vectors and glyrepr-compatible <code>igraph</code> objects.</p></li>
+<li><p>New <code><a href="../reference/rex_extract.html">rex_extract()</a></code> and <code><a href="../reference/rex_extract_all.html">rex_extract_all()</a></code> return matching glycan fragments while preserving reducing-end anomeric information.</p></li>
+<li><p>New <code><a href="../reference/rex_locate.html">rex_locate()</a></code> and <code><a href="../reference/rex_locate_all.html">rex_locate_all()</a></code> identify the nodes and edges of structural matches.</p></li>
+<li><p>New <code><a href="../reference/rex_match.html">rex_match()</a></code> and <code><a href="../reference/rex_match_all.html">rex_match_all()</a></code> return structural matches and named captures.</p></li>
+<li><p>New <code><a href="../reference/rex_subset.html">rex_subset()</a></code> and <code><a href="../reference/rex_which.html">rex_which()</a></code> select matching glycans or their indices.</p></li>
 </ul></div>
   </main></div>
 
