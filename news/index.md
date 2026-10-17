@@ -1,5 +1,7 @@
 # Changelog
 
+## glyrex (development version)
+
 ## glyrex 0.1.0
 
 - Initial release.
