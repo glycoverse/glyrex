@@ -1,13 +1,17 @@
-# glyrex 0.0.0.9000
+# glyrex 0.1.0
 
-* Query functions now use `glycans` instead of `string` and automatically parse all formats supported by `glyparse::auto_parse()`, including mixed-format vectors.
+* Initial release.
 
-* Branch absence requires `(!branch-)`; bare `!linked-residue` and groups missing the final attachment dash are rejected. `[^A]` always consumes a nonmatching residue, including when A has a linkage constraint.
+* Get Started and glyco-regex syntax vignettes introduce structural queries through biological examples.
 
-* Residue negation uses `[^A]`; the `[!A]` spelling is rejected with migration guidance.
+* New `rex_compile()` validates and compiles reusable glycan patterns with residue classes, linkage constraints, branches, repetition, anchors, lookaround, and named captures.
 
-* `(!...-)` always asserts branch absence: `(!Fuc-)` forbids any Fuc branch at the attachment residue, while `(!Fuca3-)` restricts the forbidden branch to an alpha1-3 linkage.
+* New `rex_count()` and `rex_detect()` count and detect structural matches. Query functions accept glycan strings in any format supported by `glyparse::auto_parse()`, including mixed-format vectors, as well as `glyrepr_structure` vectors and glyrepr-compatible `igraph` objects.
 
-* `rex_compile()` compiles glycowork-style glycan patterns with branches, repetition, location anchors, lookaround, and named captures, including glyrepr reducing-end configuration constraints.
-* `rex_detect()`, `rex_count()`, `rex_extract()`, `rex_extract_all()`, `rex_match()`, `rex_match_all()`, `rex_locate()`, `rex_locate_all()`, `rex_subset()`, and `rex_which()` provide stringr-style structural queries on IUPAC strings and glyrepr structures.
-* Queries reject glycans with floating parts or floating substituents.
+* New `rex_extract()` and `rex_extract_all()` return matching glycan fragments while preserving reducing-end anomeric information.
+
+* New `rex_locate()` and `rex_locate_all()` identify the nodes and edges of structural matches.
+
+* New `rex_match()` and `rex_match_all()` return structural matches and named captures.
+
+* New `rex_subset()` and `rex_which()` select matching glycans or their indices.

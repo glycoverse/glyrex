@@ -1,6 +1,6 @@
 Package: glyrex
 Title: Regular Expressions for Glycan Structures
-Version: 0.0.0.9000
+Version: 0.1.0
 Authors@R: 
     person("Bin", "Fu", , "23110220018@m.fudan.edu.cn", role = c("aut", "cre"))
 Description: Compile and match glycan structural regular expressions with
