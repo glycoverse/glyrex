@@ -21,10 +21,35 @@ flexible and expressive way for glycan substructure analysis than
 
 ## Installation
 
+The glyrex package is not a core glycoverse package. You need to install
+it individually even if you have installed the meta-package
+[glycoverse](https://github.com/glycoverse/glycoverse).
+
+You can install the latest release of glyrex from
+[r-universe](https://glycoverse.r-universe.dev/glyrex)
+(**recommended**):
+
 ``` r
-# install.packages("pak")
+pak::repo_add(glycoverse = "https://glycoverse.r-universe.dev")
+pak::pkg_install("glyrex")
+```
+
+Or from [GitHub](https://github.com/glycoverse/glyrex):
+
+``` r
+pak::pkg_install("glycoverse/glyrex@*release")
+```
+
+Or install the development version (NOT recommended):
+
+``` r
 pak::pkg_install("glycoverse/glyrex")
 ```
+
+**Note:** Tips and troubleshooting for the meta-package
+[glycoverse](https://github.com/glycoverse/glycoverse) are also
+applicable here: [Installation of
+glycoverse](https://github.com/glycoverse/glycoverse#installation).
 
 This is an experimental development package. It depends on
 [glyrepr](https://glycoverse.github.io/glyrepr/) for glycan
