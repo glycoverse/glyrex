@@ -4,7 +4,7 @@ pkgdown_sha: ~
 articles:
   glyco-regex-syntax: glyco-regex-syntax.html
   glyrex: glyrex.html
-last_built: 2026-10-17T09:38Z
+last_built: 2026-10-18T10:54Z
 urls:
   reference: https://glycoverse.github.io/glyrex/reference
   article: https://glycoverse.github.io/glyrex/articles
