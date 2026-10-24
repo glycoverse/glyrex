@@ -368,12 +368,20 @@ The results are collected separately for each input glycan. The two Man
 residues are separate matches even though they are the same kind of
 sugar.
 
-For more complex patterns, matches can overlap. glyrex keeps one
-successful match per starting residue, then removes matches wholly
-contained in a larger match. When several remain, larger matches come
-first, followed by the package’s residue order. Thus “first” does not
-mean the leftmost piece of the written input, and counts are not
-necessarily counts of independent, non-overlapping motifs. See
+For more complex patterns, matches can overlap. Match identity includes
+both all matched residues and the residues assigned to each named
+capture, so different sites remain distinct even when their extracted
+strings are equal. For the same first consumed residue and capture
+assignments, the first successful trace takes precedence over later
+nested traces; incomparable branch choices survive. Strict subsets are
+then removed only when capture assignments agree. Greedy/lazy repetition
+controls search preference, but different captured repeat lengths are
+retained.
+
+Larger matches come first, followed by minimum residue ID and
+deterministic node/capture tie breakers. Thus “first” does not mean the
+leftmost piece of the written input, and counts are not necessarily
+counts of independent, non-overlapping motifs. See
 [`?rex_detect`](https://glycoverse.github.io/glyrex/reference/rex_detect.md)
 for details.
 

@@ -34,14 +34,30 @@ A logical vector. Missing glycans or patterns return `NA`.
 
 ## Details
 
-The matching unit is a connected structural trace. As in glycowork, the
-first successful trace per starting node is retained, then strict
-subsets of other traces are removed. Distinct branches with equal
-sequences remain distinct matches. Matches are ordered by decreasing
-residue count and then starting node ID. Repeats are greedy unless
-marked lazy; successful traces may overlap. Counts therefore need not
-equal text-regex counts. Only connected rooted trees are supported;
-floating topology or floating substituents are rejected explicitly. See
+A match is identified by its complete set of graph nodes and the node
+set assigned to each named capture. Repeated search routes to the same
+identity are collapsed; different capture assignments remain distinct,
+even when their extracted strings or location rows are identical.
+
+At the same actual starting residue (the first consumed node), the first
+successful trace wins over later traces with identical capture
+assignments whose node sets contain it or are contained in it.
+Incomparable branch choices are retained. Search order follows pattern
+alternatives and greedy (longer first) or lazy (shorter first)
+repetition. Among these selected traces, strict subsets are removed only
+when capture assignments agree. Thus different captured sites or
+captured repeat lengths are preserved, including for lazy repeats. An
+unmatched capture differs from an empty one.
+
+Results are ordered by decreasing residue count, then minimum node ID,
+then lexicographically by sorted node IDs and capture assignments to
+break ties. This order is deterministic for a given input graph;
+renumbering can change the order, but IDs always refer to that input
+graph. Matches may overlap. Counts therefore need not equal text-regex
+counts. These rules replace the earlier one-match-per-minimum-node and
+capture-blind subset filtering. Only connected rooted trees are
+supported; floating topology or floating substituents are rejected
+explicitly. See
 [`rex_compile()`](https://glycoverse.github.io/glyrex/reference/rex_compile.md)
 for syntax.
 
