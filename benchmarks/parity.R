@@ -1,7 +1,7 @@
-# Run in separate processes with old/new library paths and compare the RDS files.
-# Rscript benchmarks/parity.R /path/to/library /path/to/output.rds
-args <- commandArgs(TRUE)
-library(glyrex, lib.loc = args[1L])
+# Console-only comparison; neither outputs nor datasets are saved.
+source("benchmarks/helpers.R")
+before <- load_glyrex_version("2a808806c7c88adb9d6eaf7278e5e18ff15ae787")
+after <- load_glyrex_version()
 set.seed(123)
 fixtures <- dget("tests/testthat/fixtures/glycowork.R")
 generated <- lapply(seq_len(30), function(i) {
@@ -42,30 +42,25 @@ patterns <- unique(c(
   "[HexNAc]{2,}",
   "(!Neu5Ac-)Gal-GlcNAc"
 ))
-normalize <- function(value) {
-  if (inherits(value, "glyrepr_structure")) {
-    return(list(
-      type = "glyrepr_structure",
-      values = as.character(value)
-    ))
-  }
-  if (inherits(value, "igraph")) {
-    return(glyrepr::structure_to_iupac(value))
-  }
-  if (is.list(value) && !is.data.frame(value)) {
-    return(lapply(value, normalize))
-  }
-  value
-}
-out <- list()
+compared <- 0L
 g <- glyrepr::as_glycan_structure(x)
-for (fn in setdiff(getNamespaceExports("glyrex"), "rex_compile")) {
-  f <- getExportedValue("glyrex", fn)
+selected <- commandArgs(TRUE)
+if (length(selected)) query_functions <- intersect(query_functions, selected)
+for (fn in query_functions) {
   for (j in seq_along(patterns)) {
     for (representation in c("text", "structure")) {
       input <- if (representation == "text") x else g
       key <- paste(fn, j, representation, sep = "/")
-      out[[key]] <- normalize(f(input, rex_compile(patterns[j])))
+      p <- before$rex_compile(patterns[j])
+      stopifnot(identical(p, after$rex_compile(patterns[j])))
+      old <- normalize_result(before[[fn]](input, p))
+      new <- normalize_result(after[[fn]](input, p))
+      if (!identical(old, new)) {
+        cat("Mismatch:", key, "pattern:", patterns[j], "\n")
+        print(all.equal(old, new))
+        stop("Parity check failed.")
+      }
+      compared <- compared + 1L
     }
   }
   # Raw graphs retain original node and edge IDs after a permutation.
@@ -73,8 +68,11 @@ for (fn in setdiff(getNamespaceExports("glyrex"), "rex_compile")) {
     as.list(g)[[1]],
     rev(seq_len(igraph::vcount(as.list(g)[[1]])))
   )
-  out[[paste0(fn, "/graph")]] <- normalize(f(graph, "(?<tip>Hex)-HexNAc"))
+  stopifnot(identical(
+    normalize_result(before[[fn]](graph, "(?<tip>Hex)-HexNAc")),
+    normalize_result(after[[fn]](graph, "(?<tip>Hex)-HexNAc"))
+  ))
+  compared <- compared + 1L
   cat(fn, "complete\n")
 }
-saveRDS(out, args[2L])
-cat(length(out), "result objects saved\n")
+cat(compared, "result objects agree\n")
