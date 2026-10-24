@@ -45,7 +45,9 @@ patterns <- unique(c(
 compared <- 0L
 g <- glyrepr::as_glycan_structure(x)
 selected <- commandArgs(TRUE)
-if (length(selected)) query_functions <- intersect(query_functions, selected)
+if (length(selected)) {
+  query_functions <- intersect(query_functions, selected)
+}
 for (fn in query_functions) {
   for (j in seq_along(patterns)) {
     for (representation in c("text", "structure")) {
