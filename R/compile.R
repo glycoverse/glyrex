@@ -51,12 +51,14 @@ rex_compile <- function(pattern) {
     )
   }
   take <- function(rx) {
-    m <- regexpr(rx, tail(), perl = TRUE)
+    remaining <- tail()
+    m <- regexpr(rx, remaining, perl = TRUE)
     if (m[1L] != 1L) {
       return(NULL)
     }
-    value <- regmatches(tail(), m)
-    pos <<- pos + nchar(value)
+    width <- attr(m, "match.length")
+    value <- substr(remaining, 1L, width)
+    pos <<- pos + width
     value
   }
   node <- function(kind, ...) list(kind = kind, ...)
