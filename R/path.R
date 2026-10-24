@@ -81,8 +81,7 @@ rex_atom_mask <- function(term, ctx) {
 }
 
 rex_search_path <- function(ctx, plan, first = FALSE, groups = NULL) {
-  # All paths have the same nonzero length, so no strict-subset pruning is
-  # needed. Retain the established minimum-node start key and result order.
+  # Fixed paths use the same match identity and ordering as backtracking.
   ids <- seq_len(ctx$n)
   paths <- matrix(integer(), nrow = ctx$n, ncol = 0L)
   for (atom in plan$atoms) {
@@ -94,22 +93,7 @@ rex_search_path <- function(ctx, plan, first = FALSE, groups = NULL) {
     paths <- cbind(paths[keep, , drop = FALSE], ids[keep])
     ids <- ctx$parent[ids[keep]]
   }
-  starts <- paths[, 1L]
-  if (ncol(paths) > 1L) {
-    for (j in 2:ncol(paths)) {
-      starts <- pmin.int(starts, paths[, j])
-    }
-  }
-  keep <- which(!duplicated(starts))
-  keep <- keep[order(starts[keep])]
-  if (first) {
-    keep <- if (is.null(groups)) {
-      keep[1L]
-    } else {
-      keep[!duplicated(groups[paths[keep, 1L]])]
-    }
-  }
-  lapply(keep, function(i) {
+  hits <- lapply(seq_len(nrow(paths)), function(i) {
     nodes <- unname(paths[i, ])
     list(
       cur = ids[i],
@@ -118,6 +102,7 @@ rex_search_path <- function(ctx, plan, first = FALSE, groups = NULL) {
       last = nodes[length(nodes)]
     )
   })
+  rex_finalize_hits(hits, first = first, groups = groups)
 }
 
 # Unconstrained fixed paths can evaluate all graph residues in a single pass.

@@ -431,10 +431,19 @@ Try known positive and negative structures, and inspect extracted matches.
 - `rex_extract()` returns one retained match; `rex_extract_all()` returns all
   retained matches. Extracted strings use standardized IUPAC notation.
 - `rex_count()` counts retained structural matches, not glycan abundance.
-  glyrex keeps the first successful match per starting residue, then removes
-  matches wholly contained in larger matches. Remaining matches may overlap;
-  it does not enumerate every possible combination of alternatives or branches.
-- Matches are ordered by decreasing residue count, then starting residue ID.
+  Match identity includes the complete node set and each named capture's node
+  set. Different sites remain distinct even if their extracted strings match.
+- For the same first consumed residue and identical capture assignments,
+  the first successful trace takes precedence over later nested traces.
+  Greedy/lazy repetition and alternative order control this preference;
+  incomparable branch choices survive. Subsequent strict-subset filtering
+  applies only to matches with identical capture assignments.
+- Different captured repeat lengths are retained, even with lazy repetition.
+  Matches may overlap, and identical location rows can represent different
+  capture assignments. Unmatched and empty captures are distinct.
+- Matches are ordered by decreasing residue count, then minimum residue ID,
+  with sorted node and capture keys breaking ties lexicographically.
+  Renumbering can change the order, but not the corresponding matched sites.
   The first result is not necessarily the leftmost text in the input string.
 - `rex_locate()` and `rex_locate_all()` report graph residue and edge IDs,
   not character positions in a string.

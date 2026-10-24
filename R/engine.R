@@ -286,32 +286,112 @@ rex_search <- function(ctx, compiled, first = FALSE) {
   }
   hits <- sequence(compiled$tree, list(initial()))
   hits <- Filter(function(hit) rex_connected(hit$nodes, ctx), hits)
-  # As in glycowork, keep the first successful trace for each start node,
-  # then remove traces wholly contained in a larger successful trace.
+  rex_finalize_hits(hits, first = first)
+}
+
+# Identity is independent of traversal order, but includes every capture name
+# and its node assignment. An unmatched capture differs from an empty capture.
+rex_node_key <- function(nodes, width = 1L) {
+  paste(sprintf("%0*d", width, sort(unique(nodes))), collapse = ",")
+}
+
+rex_capture_key <- function(captures, width = 1L) {
+  names <- sort(names(captures))
+  paste(
+    vapply(
+      names,
+      function(name) {
+        paste0(
+          nchar(name),
+          ":",
+          name,
+          "=",
+          rex_node_key(captures[[name]], width)
+        )
+      },
+      character(1)
+    ),
+    collapse = ";"
+  )
+}
+
+rex_finalize_hits <- function(hits, first = FALSE, groups = NULL) {
   if (!length(hits)) {
     return(hits)
   }
-  starts <- vapply(hits, function(hit) min(hit$nodes), integer(1))
-  hits <- hits[!duplicated(starts)]
-  keep <- vapply(
+  nodes <- lapply(hits, function(hit) sort(unique(hit$nodes)))
+  # Padding gives numeric lexicographic order, including after batch offsets.
+  width <- nchar(max(unlist(nodes, use.names = FALSE)))
+  node_keys <- vapply(nodes, rex_node_key, character(1), width = width)
+  capture_keys <- vapply(
+    hits,
+    function(hit) rex_capture_key(hit$captures, width),
+    character(1)
+  )
+  sizes <- lengths(nodes)
+  starts <- vapply(hits, function(hit) hit$nodes[1L], integer(1))
+  keep <- rep(TRUE, length(hits))
+  # Search order encodes alternative and greedy/lazy repeat preferences.
+  # Apply that preference only to nested candidates from the same actual
+  # start with identical captures. Incomparable branch choices survive.
+  for (indices in split(
     seq_along(hits),
-    function(i) {
-      !any(vapply(
-        seq_along(hits),
+    paste(starts, capture_keys, sep = "|")
+  )) {
+    retained <- integer()
+    for (i in indices) {
+      comparable <- vapply(
+        retained,
         function(j) {
-          length(hits[[i]]$nodes) < length(hits[[j]]$nodes) &&
-            all(hits[[i]]$nodes %in% hits[[j]]$nodes)
+          all(nodes[[i]] %in% nodes[[j]]) || all(nodes[[j]] %in% nodes[[i]])
         },
         logical(1)
+      )
+      if (any(comparable)) {
+        keep[i] <- FALSE
+      } else {
+        retained <- c(retained, i)
+      }
+    }
+  }
+  # Maximality is capture-specific: a larger match at another site cannot
+  # erase a smaller match. Compare only the preference-selected candidates.
+  candidates <- which(keep)
+  for (i in if (length(unique(sizes)) > 1L) candidates else integer()) {
+    larger <- candidates[
+      sizes[candidates] > sizes[i] &
+        capture_keys[candidates] == capture_keys[i]
+    ]
+    if (
+      any(vapply(
+        larger,
+        function(j) all(nodes[[i]] %in% nodes[[j]]),
+        logical(1)
       ))
-    },
-    logical(1)
-  )
-  hits <- hits[keep]
-  sizes <- vapply(hits, function(hit) length(hit$nodes), integer(1))
-  starts <- vapply(hits, function(hit) min(hit$nodes), integer(1))
-  hits <- hits[order(-sizes, starts)]
-  if (first) hits[1L] else hits
+    ) {
+      keep[i] <- FALSE
+    }
+  }
+  selected <- which(keep)
+  identity <- paste(node_keys, capture_keys, sep = "|")
+  selected <- selected[!duplicated(identity[selected])]
+  # Full node and capture keys resolve ties, independently of search order.
+  minimum <- vapply(nodes, min, integer(1))
+  selected <- selected[order(
+    -sizes[selected],
+    minimum[selected],
+    node_keys[selected],
+    capture_keys[selected],
+    method = "radix"
+  )]
+  if (first) {
+    selected <- if (is.null(groups)) {
+      selected[1L]
+    } else {
+      selected[!duplicated(groups[starts[selected]])]
+    }
+  }
+  hits[selected]
 }
 
 rex_fragment <- function(ctx, nodes) {
