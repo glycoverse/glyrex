@@ -1,5 +1,7 @@
 # glyrex (development version)
 
+* `rex_compile()` and query functions are faster for batch queries, especially when inputs contain repeated structures or patterns.
+
 # glyrex 0.1.0
 
 * Initial release.

@@ -1,11 +1,17 @@
-rex_graph <- function(g) {
-  glyrepr::validate_glycan_graph(g)
-  n <- igraph::vcount(g)
+rex_graph <- function(g, validate = TRUE) {
+  # Structure vectors already contain validated graphs. Raw igraph inputs
+  # still need full semantic validation before building a query context.
+  if (validate) {
+    glyrepr::validate_glycan_graph(g)
+  }
+  vertices <- igraph::vertex_attr(g)
+  attributes <- igraph::graph_attr(g)
+  n <- length(vertices$mono)
   if (
     !n ||
-      !igraph::is_tree(g, mode = "out") ||
-      length(igraph::graph_attr(g, "floating_parts")) ||
-      length(igraph::graph_attr(g, "floating_substituents"))
+      (validate && !igraph::is_tree(g, mode = "out")) ||
+      length(attributes$floating_parts) ||
+      length(attributes$floating_substituents)
   ) {
     stop(
       "Queries require a connected rooted tree without floating metadata.",
@@ -18,22 +24,25 @@ rex_graph <- function(g) {
   links <- rep("", n)
   if (nrow(edges)) {
     parent[edges[, 2L]] <- edges[, 1L]
-    links[edges[, 2L]] <- igraph::edge_attr(g, "linkage")
+    links[edges[, 2L]] <- igraph::edge_attr(g)$linkage
   }
   root <- which(parent == 0L)
-  links[root] <- paste0(glyrepr::get_anomer(g), "-")
-  mono <- igraph::vertex_attr(g, "mono")
+  links[root] <- paste0(attributes$anomer, "-")
+  mono <- vertices$mono
   list(
     graph = g,
     n = n,
     parent = parent,
     links = links,
     mono = mono,
-    generic = glyrepr::convert_to_generic(mono),
-    sub = igraph::vertex_attr(g, "sub"),
+    generic = unname(rex_residues()$generic[mono]),
+    sub = vertices$sub,
     root = root,
     leaf = !seq_len(n) %in% parent,
-    edges = edges
+    edges = edges,
+    fragments = new.env(parent = emptyenv()),
+    alditol = isTRUE(attributes$alditol),
+    linkage_fields = new.env(parent = emptyenv())
   )
 }
 
@@ -67,10 +76,16 @@ rex_atom <- function(term, id, ctx) {
   if (!residue || (term$root && id != ctx$root)) {
     return(FALSE)
   }
-  fields <- regmatches(
-    ctx$links[id],
-    regexec("^([ab?])([0-9?]+)-(.*)$", ctx$links[id])
-  )[[1L]]
+  if (is.null(term$anomer) && is.null(term$donor) && is.null(term$acceptor)) {
+    return(TRUE)
+  }
+  if (is.null(ctx$linkage_fields$values)) {
+    ctx$linkage_fields$values <- regmatches(
+      ctx$links,
+      regexec("^([ab?])([0-9?]+)-(.*)$", ctx$links)
+    )
+  }
+  fields <- ctx$linkage_fields$values[[id]]
   if (!length(fields)) {
     return(FALSE)
   }
@@ -85,6 +100,21 @@ rex_connected <- function(nodes, ctx) {
 }
 
 rex_search <- function(ctx, compiled) {
+  if (!is.null(compiled$path)) {
+    return(rex_search_path(ctx, compiled$path))
+  }
+  atom_masks <- new.env(parent = emptyenv())
+  atom <- function(term, id) {
+    if (is.null(term$atom_id)) {
+      return(rex_atom(term, id, ctx))
+    }
+    mask <- atom_masks[[term$atom_id]]
+    if (is.null(mask)) {
+      mask <- rex_atom_mask(term, ctx)
+      atom_masks[[term$atom_id]] <- mask
+    }
+    mask[id]
+  }
   initial <- function(cur = NULL, used = integer()) {
     list(cur = cur, nodes = used, captures = list(), last = 0L)
   }
@@ -121,11 +151,11 @@ rex_search <- function(ctx, compiled) {
           next
         }
         ok <- if (kind == "atom") {
-          rex_atom(term, id, ctx)
+          atom(term, id)
         } else {
           !any(vapply(
             term$alternatives,
-            function(alt) rex_atom(alt[[1L]], id, ctx),
+            function(alt) atom(alt[[1L]], id),
             logical(1)
           ))
         }
@@ -288,6 +318,10 @@ rex_fragment <- function(ctx, nodes) {
     return(NA_character_)
   }
   nodes <- sort(unique(nodes))
+  key <- paste(nodes, collapse = ",")
+  if (exists(key, ctx$fragments, inherits = FALSE)) {
+    return(ctx$fragments[[key]])
+  }
   root <- nodes[!ctx$parent[nodes] %in% nodes]
   if (length(root) != 1L) {
     stop("A capture must form a connected structure.", call. = FALSE)
@@ -302,4 +336,110 @@ rex_fragment <- function(ctx, nodes) {
     graph <- igraph::set_graph_attr(graph, "alditol", FALSE)
   }
   glyrepr::graph_to_iupac(glyrepr::canonicalize_glycan_graph(graph))
+}
+
+# Serialize requested subtrees and canonicalize them in one parser batch.
+# Branch ordering remains the responsibility of glyrepr. This avoids repeated
+# igraph subgraph creation and canonicalization. The
+# fragment cache belongs to this query's context and cannot outlive the query.
+rex_prepare_fragments <- function(results, first, captures = FALSE) {
+  records <- list()
+  targets <- list()
+  preserve <- character()
+  for (result in results) {
+    ctx <- result$ctx
+    hits <- if (first) utils::head(result$hits, 1L) else result$hits
+    for (hit in hits) {
+      groups <- c(list(hit$nodes), if (captures) hit$captures)
+      for (nodes in groups) {
+        if (!length(nodes)) {
+          next
+        }
+        nodes <- sort(unique(nodes))
+        key <- paste(nodes, collapse = ",")
+        if (exists(key, ctx$fragments, inherits = FALSE)) {
+          next
+        }
+        root <- nodes[!ctx$parent[nodes] %in% nodes]
+        if (length(root) != 1L) {
+          stop("A capture must form a connected structure.", call. = FALSE)
+        }
+        emit <- function(id) {
+          children <- nodes[ctx$parent[nodes] == id]
+          label <- paste0(
+            ctx$mono[id],
+            gsub(",", "", ctx$sub[id], fixed = TRUE)
+          )
+          if (!length(children)) {
+            return(label)
+          }
+          arms <- vapply(
+            children,
+            function(child) {
+              paste0(emit(child), "(", ctx$links[child], ")")
+            },
+            character(1)
+          )
+          paste0(
+            arms[1L],
+            paste0(
+              if (length(arms) > 1L) {
+                paste0("[", arms[-1L], "]")
+              },
+              collapse = ""
+            ),
+            label
+          )
+        }
+        value <- paste0(
+          emit(root),
+          if (root == ctx$root && ctx$alditol) "-ol",
+          "(",
+          sub("-.*$", "", ctx$links[root]),
+          "-"
+        )
+        # Equal/ambiguous branch positions can have stable-order ties. A
+        # string round trip can reorder these ties, whereas graph extraction
+        # must preserve the original serializer's exact output.
+        children <- nodes[nodes != root]
+        tied <- FALSE
+        if (anyDuplicated(ctx$parent[children])) {
+          positions <- sub(".*-", "", ctx$links[children])
+          position_groups <- split(positions, ctx$parent[children])
+          tied <- any(vapply(
+            position_groups,
+            function(pos) {
+              length(pos) > 1L &&
+                (anyDuplicated(pos) > 0L || any(!grepl("^[0-9]+$", pos)))
+            },
+            logical(1)
+          ))
+        }
+        if (tied) {
+          value <- rex_fragment(ctx, nodes)
+        }
+        records[[length(records) + 1L]] <- value
+        preserve[length(records)] <- if (tied) value else NA_character_
+        targets[[length(targets) + 1L]] <- list(
+          cache = ctx$fragments,
+          key = key
+        )
+        ctx$fragments[[key]] <- NA_character_
+      }
+    }
+  }
+  if (length(records)) {
+    structures <- glyrepr::as_glycan_structure(unlist(records))
+    fragments <- as.character(structures)
+    fragments[!is.na(preserve)] <- preserve[!is.na(preserve)]
+    for (i in seq_along(targets)) {
+      target <- targets[[i]]
+      target$cache[[target$key]] <- fragments[[i]]
+    }
+    return(list(structures = structures, keys = fragments))
+  }
+  list(
+    structures = glyrepr::as_glycan_structure(character()),
+    keys = character()
+  )
 }
