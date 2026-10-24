@@ -42,7 +42,7 @@ rex_graph <- function(g, validate = TRUE) {
     edges = edges,
     fragments = new.env(parent = emptyenv()),
     alditol = isTRUE(attributes$alditol),
-    linkage_fields = new.env(parent = emptyenv())
+    cache = new.env(parent = emptyenv())
   )
 }
 
@@ -79,13 +79,13 @@ rex_atom <- function(term, id, ctx) {
   if (is.null(term$anomer) && is.null(term$donor) && is.null(term$acceptor)) {
     return(TRUE)
   }
-  if (is.null(ctx$linkage_fields$values)) {
-    ctx$linkage_fields$values <- regmatches(
+  if (is.null(ctx$cache$values)) {
+    ctx$cache$values <- regmatches(
       ctx$links,
       regexec("^([ab?])([0-9?]+)-(.*)$", ctx$links)
     )
   }
-  fields <- ctx$linkage_fields$values[[id]]
+  fields <- ctx$cache$values[[id]]
   if (!length(fields)) {
     return(FALSE)
   }
@@ -99,9 +99,9 @@ rex_connected <- function(nodes, ctx) {
   length(nodes) > 0L && sum(ctx$parent[nodes] %in% nodes) == length(nodes) - 1L
 }
 
-rex_search <- function(ctx, compiled) {
+rex_search <- function(ctx, compiled, first = FALSE) {
   if (!is.null(compiled$path)) {
-    return(rex_search_path(ctx, compiled$path))
+    return(rex_search_path(ctx, compiled$path, first = first))
   }
   atom_masks <- new.env(parent = emptyenv())
   atom <- function(term, id) {
@@ -310,14 +310,17 @@ rex_search <- function(ctx, compiled) {
   hits <- hits[keep]
   sizes <- vapply(hits, function(hit) length(hit$nodes), integer(1))
   starts <- vapply(hits, function(hit) min(hit$nodes), integer(1))
-  hits[order(-sizes, starts)]
+  hits <- hits[order(-sizes, starts)]
+  if (first) hits[1L] else hits
 }
 
 rex_fragment <- function(ctx, nodes) {
   if (!length(nodes)) {
     return(NA_character_)
   }
-  nodes <- sort(unique(nodes))
+  if (is.unsorted(nodes)) {
+    nodes <- sort.int(nodes, method = "quick")
+  }
   key <- paste(nodes, collapse = ",")
   if (exists(key, ctx$fragments, inherits = FALSE)) {
     return(ctx$fragments[[key]])
@@ -342,20 +345,39 @@ rex_fragment <- function(ctx, nodes) {
 # Branch ordering remains the responsibility of glyrepr. This avoids repeated
 # igraph subgraph creation and canonicalization. The
 # fragment cache belongs to this query's context and cannot outlive the query.
-rex_prepare_fragments <- function(results, first, captures = FALSE) {
+rex_prepare_fragments <- function(
+  results,
+  first,
+  captures = FALSE,
+  structures = FALSE
+) {
   records <- list()
   targets <- list()
   preserve <- character()
+  canonicalize <- logical()
   for (result in results) {
     ctx <- result$ctx
-    hits <- if (first) utils::head(result$hits, 1L) else result$hits
+    hits <- if (first && length(result$hits)) result$hits[1L] else result$hits
+    if (length(hits)) {
+      if (is.null(ctx$cache$labels)) {
+        ctx$cache$labels <- paste0(
+          ctx$mono,
+          gsub(",", "", ctx$sub, fixed = TRUE)
+        )
+        ctx$cache$ends <- sub("-.*$", "-", ctx$links)
+      }
+      ctx$labels <- ctx$cache$labels
+      ctx$ends <- ctx$cache$ends
+    }
     for (hit in hits) {
       groups <- c(list(hit$nodes), if (captures) hit$captures)
       for (nodes in groups) {
         if (!length(nodes)) {
           next
         }
-        nodes <- sort(unique(nodes))
+        if (is.unsorted(nodes)) {
+          nodes <- sort.int(nodes, method = "quick")
+        }
         key <- paste(nodes, collapse = ",")
         if (exists(key, ctx$fragments, inherits = FALSE)) {
           next
@@ -364,46 +386,67 @@ rex_prepare_fragments <- function(results, first, captures = FALSE) {
         if (length(root) != 1L) {
           stop("A capture must form a connected structure.", call. = FALSE)
         }
-        emit <- function(id) {
-          children <- nodes[ctx$parent[nodes] == id]
-          label <- paste0(
-            ctx$mono[id],
-            gsub(",", "", ctx$sub[id], fixed = TRUE)
-          )
-          if (!length(children)) {
-            return(label)
+        children <- nodes[nodes != root]
+        linear <- !anyDuplicated(ctx$parent[children])
+        if (linear) {
+          path <- integer(length(nodes))
+          path[1L] <- nodes[!nodes %in% ctx$parent[nodes]]
+          if (length(path) > 1L) {
+            for (j in 2:length(path)) {
+              path[j] <- ctx$parent[path[j - 1L]]
+            }
           }
-          arms <- vapply(
-            children,
-            function(child) {
-              paste0(emit(child), "(", ctx$links[child], ")")
-            },
-            character(1)
+          labels <- ctx$labels[path]
+          if (root == ctx$root && ctx$alditol) {
+            labels[length(path)] <- paste0(labels[length(path)], "-ol")
+          }
+          links <- ctx$links[path]
+          links[length(path)] <- ctx$ends[root]
+          value <- paste0(
+            labels,
+            "(",
+            links,
+            c(rep(")", length(path) - 1L), ""),
+            collapse = ""
           )
-          paste0(
-            arms[1L],
-            paste0(
-              if (length(arms) > 1L) {
-                paste0("[", arms[-1L], "]")
+        } else {
+          emit <- function(id) {
+            children <- nodes[ctx$parent[nodes] == id]
+            label <- ctx$labels[id]
+            if (!length(children)) {
+              return(label)
+            }
+            arms <- vapply(
+              children,
+              function(child) {
+                paste0(emit(child), "(", ctx$links[child], ")")
               },
-              collapse = ""
-            ),
-            label
+              character(1)
+            )
+            paste0(
+              arms[1L],
+              paste0(
+                if (length(arms) > 1L) {
+                  paste0("[", arms[-1L], "]")
+                },
+                collapse = ""
+              ),
+              label
+            )
+          }
+          value <- paste0(
+            emit(root),
+            if (root == ctx$root && ctx$alditol) "-ol",
+            "(",
+            sub("-.*$", "", ctx$links[root]),
+            "-"
           )
         }
-        value <- paste0(
-          emit(root),
-          if (root == ctx$root && ctx$alditol) "-ol",
-          "(",
-          sub("-.*$", "", ctx$links[root]),
-          "-"
-        )
         # Equal/ambiguous branch positions can have stable-order ties. A
         # string round trip can reorder these ties, whereas graph extraction
         # must preserve the original serializer's exact output.
-        children <- nodes[nodes != root]
         tied <- FALSE
-        if (anyDuplicated(ctx$parent[children])) {
+        if (!linear) {
           positions <- sub(".*-", "", ctx$links[children])
           position_groups <- split(positions, ctx$parent[children])
           tied <- any(vapply(
@@ -420,6 +463,7 @@ rex_prepare_fragments <- function(results, first, captures = FALSE) {
         }
         records[[length(records) + 1L]] <- value
         preserve[length(records)] <- if (tied) value else NA_character_
+        canonicalize[length(records)] <- !linear && !tied
         targets[[length(targets) + 1L]] <- list(
           cache = ctx$fragments,
           key = key
@@ -429,17 +473,29 @@ rex_prepare_fragments <- function(results, first, captures = FALSE) {
     }
   }
   if (length(records)) {
-    structures <- glyrepr::as_glycan_structure(unlist(records))
-    fragments <- as.character(structures)
+    fragments <- unlist(records, use.names = FALSE)
+    values <- NULL
+    if (structures) {
+      values <- glyrepr::as_glycan_structure(fragments)
+      fragments[canonicalize] <- as.character(values)[canonicalize]
+    } else if (any(canonicalize)) {
+      fragments[
+        canonicalize
+      ] <- as.character(glyrepr::as_glycan_structure(fragments[canonicalize]))
+    }
     fragments[!is.na(preserve)] <- preserve[!is.na(preserve)]
     for (i in seq_along(targets)) {
       target <- targets[[i]]
       target$cache[[target$key]] <- fragments[[i]]
     }
-    return(list(structures = structures, keys = fragments))
+    return(list(structures = values, keys = fragments))
   }
   list(
-    structures = glyrepr::as_glycan_structure(character()),
+    structures = if (structures) {
+      glyrepr::as_glycan_structure(character())
+    } else {
+      NULL
+    },
     keys = character()
   )
 }

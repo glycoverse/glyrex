@@ -1,6 +1,10 @@
 # A fixed path needs no backtracking. Build this plan once per query pattern,
 # rather than caching it on a user-modifiable compiled object.
 rex_prepare_pattern <- function(pattern) {
+  pattern$path <- rex_path_plan(pattern$tree)
+  if (!is.null(pattern$path)) {
+    return(pattern)
+  }
   index <- 0L
   prepare <- function(term) {
     if (term$kind == "atom") {
@@ -18,7 +22,6 @@ rex_prepare_pattern <- function(pattern) {
     term
   }
   pattern$tree <- lapply(pattern$tree, prepare)
-  pattern$path <- rex_path_plan(pattern$tree)
   pattern
 }
 
@@ -77,7 +80,7 @@ rex_atom_mask <- function(term, ctx) {
   hit
 }
 
-rex_search_path <- function(ctx, plan) {
+rex_search_path <- function(ctx, plan, first = FALSE, groups = NULL) {
   # All paths have the same nonzero length, so no strict-subset pruning is
   # needed. Retain the established minimum-node start key and result order.
   ids <- seq_len(ctx$n)
@@ -91,9 +94,21 @@ rex_search_path <- function(ctx, plan) {
     paths <- cbind(paths[keep, , drop = FALSE], ids[keep])
     ids <- ctx$parent[ids[keep]]
   }
-  starts <- apply(paths, 1L, min)
+  starts <- paths[, 1L]
+  if (ncol(paths) > 1L) {
+    for (j in 2:ncol(paths)) {
+      starts <- pmin.int(starts, paths[, j])
+    }
+  }
   keep <- which(!duplicated(starts))
   keep <- keep[order(starts[keep])]
+  if (first) {
+    keep <- if (is.null(groups)) {
+      keep[1L]
+    } else {
+      keep[!duplicated(groups[paths[keep, 1L]])]
+    }
+  }
   lapply(keep, function(i) {
     nodes <- unname(paths[i, ])
     list(
@@ -103,4 +118,37 @@ rex_search_path <- function(ctx, plan) {
       last = nodes[length(nodes)]
     )
   })
+}
+
+# Unconstrained fixed paths can evaluate all graph residues in a single pass.
+# Offset parent IDs keep every path inside its original graph; results are
+# translated back to the original node IDs before they leave this helper.
+rex_search_paths <- function(contexts, plan, first = FALSE) {
+  sizes <- vapply(contexts, `[[`, integer(1), "n")
+  offsets <- cumsum(sizes) - sizes
+  parent <- unlist(lapply(contexts, `[[`, "parent"), use.names = FALSE)
+  node_offsets <- rep(offsets, sizes)
+  parent[parent != 0L] <- parent[parent != 0L] + node_offsets[parent != 0L]
+  ctx <- list(
+    n = sum(sizes),
+    parent = parent,
+    mono = unlist(lapply(contexts, `[[`, "mono"), use.names = FALSE),
+    generic = unlist(lapply(contexts, `[[`, "generic"), use.names = FALSE),
+    sub = unlist(lapply(contexts, `[[`, "sub"), use.names = FALSE)
+  )
+  membership <- rep(seq_along(contexts), sizes)
+  hits <- rex_search_path(ctx, plan, first = first, groups = membership)
+  out <- rep(list(list()), length(contexts))
+  for (hit in hits) {
+    i <- membership[hit$nodes[1L]]
+    offset <- offsets[[i]]
+    hit$nodes <- hit$nodes - offset
+    hit$last <- hit$last - offset
+    if (hit$cur) {
+      hit$cur <- hit$cur - offset
+    }
+    hit$captures <- lapply(hit$captures, function(nodes) nodes - offset)
+    out[[i]][[length(out[[i]]) + 1L]] <- hit
+  }
+  out
 }

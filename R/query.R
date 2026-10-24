@@ -1,4 +1,4 @@
-rex_queries <- function(glycans, pattern) {
+rex_queries <- function(glycans, pattern, first = FALSE) {
   graph_input <- inherits(glycans, "igraph")
   structure_input <- inherits(glycans, "glyrepr_structure")
   if (!graph_input && !structure_input && !is.character(glycans)) {
@@ -58,11 +58,41 @@ rex_queries <- function(glycans, pattern) {
   contexts <- lapply(graphs, function(g) {
     if (inherits(g, "igraph")) rex_graph(g, validate = graph_input) else NULL
   })
+  matched <- vector("list", length(gi))
+  for (j in unique(pi)) {
+    p <- patterns[[j]]
+    if (is.null(p$path)) {
+      next
+    }
+    batchable <- all(vapply(
+      p$path$atoms,
+      function(atom) {
+        !atom$root &&
+          is.null(atom$anomer) &&
+          is.null(atom$donor) &&
+          is.null(atom$acceptor)
+      },
+      logical(1)
+    ))
+    if (!batchable) {
+      next
+    }
+    ids <- which(pi == j & !vapply(contexts[gi], is.null, logical(1)))
+    if (length(ids) > 1L) {
+      matched[ids] <- rex_search_paths(contexts[gi[ids]], p$path, first = first)
+    }
+  }
   results <- lapply(seq_along(gi), function(i) {
     ctx <- contexts[[gi[i]]]
     p <- patterns[[pi[i]]]
     missing <- is.null(p) || is.null(ctx)
-    hits <- if (missing) list() else rex_search(ctx, p)
+    hits <- if (missing) {
+      list()
+    } else if (!is.null(matched[[i]])) {
+      matched[[i]]
+    } else {
+      rex_search(ctx, p, first = first)
+    }
     list(ctx = ctx, pattern = p, hits = hits, missing = missing)
   })
   attr(results, "index") <- index
@@ -118,7 +148,7 @@ rex_negate <- function(negate) {
 #' @export
 rex_detect <- function(glycans, pattern, negate = FALSE) {
   rex_negate(negate)
-  queries <- rex_queries(glycans, pattern)
+  queries <- rex_queries(glycans, pattern, first = TRUE)
   result <- rex_restore(
     vapply(
       queries,
@@ -162,27 +192,54 @@ rex_count <- function(glycans, pattern) {
 }
 
 rex_extract_results <- function(results, first) {
-  prepared <- rex_prepare_fragments(results, first)
+  prepared <- rex_prepare_fragments(
+    results,
+    first,
+    structures = isTRUE(attr(results, "structure"))
+  )
   fragments <- prepared$structures
   fragment_keys <- prepared$keys
   output <- lapply(results, function(x) {
     if (x$missing || (first && !length(x$hits))) {
       return(NA_character_)
     }
-    hits <- if (first) utils::head(x$hits, 1L) else x$hits
+    hits <- if (first && length(x$hits)) x$hits[1L] else x$hits
     vapply(hits, function(hit) rex_fragment(x$ctx, hit$nodes), character(1))
   })
   if (first) {
     output <- vapply(output, identity, character(1))
-    if (isTRUE(attr(results, "structure"))) {
-      output <- fragments[match(output, fragment_keys)]
-    }
-  } else if (isTRUE(attr(results, "structure"))) {
-    output <- lapply(output, function(values) {
-      fragments[match(values, fragment_keys)]
-    })
   }
-  rex_restore(output, results)
+  if (!isTRUE(attr(results, "structure"))) {
+    return(rex_restore(output, results))
+  }
+  canonical <- as.character(fragments)
+  graphs <- glyrepr::get_structure_graphs(fragments, return_list = TRUE)
+  names(graphs) <- canonical
+  graphs <- graphs[!duplicated(canonical)]
+  make <- function(values) {
+    keys <- canonical[match(values, fragment_keys)]
+    names(keys) <- names(values)
+    used <- unique(keys[!is.na(keys)])
+    glyrepr::new_glycan_structure(
+      keys,
+      if (length(used)) graphs[used] else list()
+    )
+  }
+  if (first) {
+    return(make(rex_restore(output, results)))
+  }
+  # Different input glycans often yield the same fragment vector. Build its
+  # structure representation once, without caching across separate queries.
+  keys <- vapply(
+    output,
+    function(values) {
+      paste(match(values, fragment_keys), collapse = ",")
+    },
+    character(1)
+  )
+  distinct <- !duplicated(keys)
+  converted <- lapply(output[distinct], make)
+  rex_restore(converted[match(keys, keys[distinct])], results)
 }
 
 #' Extract the First Structural Match
@@ -203,7 +260,7 @@ rex_extract_results <- function(results, first) {
 #' rex_extract(x, "HexNAc")
 #' @export
 rex_extract <- function(glycans, pattern) {
-  rex_extract_results(rex_queries(glycans, pattern), TRUE)
+  rex_extract_results(rex_queries(glycans, pattern, first = TRUE), TRUE)
 }
 
 #' Extract All Structural Matches
@@ -240,7 +297,7 @@ rex_match_results <- function(results, first) {
   columns <- c("match", if (length(schemas)) schemas[[1L]])
   rex_prepare_fragments(results, first, captures = TRUE)
   output <- lapply(results, function(x) {
-    hits <- if (first) utils::head(x$hits, 1L) else x$hits
+    hits <- if (first && length(x$hits)) x$hits[1L] else x$hits
     n <- if (x$missing || first) max(1L, length(hits)) else length(hits)
     out <- matrix(
       NA_character_,
@@ -293,7 +350,7 @@ rex_match_results <- function(results, first) {
 #' rex_match(x, "(?<terminal>Gal)-GlcNAc")
 #' @export
 rex_match <- function(glycans, pattern) {
-  rex_match_results(rex_queries(glycans, pattern), TRUE)
+  rex_match_results(rex_queries(glycans, pattern, first = TRUE), TRUE)
 }
 
 #' Extract All Structural Matches and Named Captures
@@ -324,34 +381,54 @@ rex_locations <- function(results, first) {
       if (x$missing || !length(x$hits)) {
         return(NA_integer_)
       }
-      sort(unique(x$hits[[1L]]$nodes))
+      sort.int(x$hits[[1L]]$nodes, method = "quick")
     })
     edges <- lapply(seq_along(results), function(i) {
       ids <- nodes[[i]]
       if (anyNA(ids)) {
         return(NA_integer_)
       }
-      edge <- results[[i]]$ctx$edges
-      which(edge[, 1L] %in% ids & edge[, 2L] %in% ids)
+      rex_location_edges(results[[i]]$ctx, ids)
     })
     index <- attr(results, "index")
-    return(data.frame(nodes = I(nodes[index]), edges = I(edges[index])))
+    return(rex_location_frame(nodes[index], edges[index]))
   }
   output <- lapply(results, function(x) {
     hits <- x$hits
     if (x$missing) {
-      return(data.frame(
-        nodes = I(list(NA_integer_)),
-        edges = I(list(NA_integer_))
-      ))
+      return(rex_location_frame(list(NA_integer_), list(NA_integer_)))
     }
-    nodes <- lapply(hits, function(hit) sort(unique(hit$nodes)))
-    edges <- lapply(nodes, function(ids) {
-      which(x$ctx$edges[, 1L] %in% ids & x$ctx$edges[, 2L] %in% ids)
-    })
-    data.frame(nodes = I(nodes), edges = I(edges))
+    nodes <- lapply(hits, function(hit) sort.int(hit$nodes, method = "quick"))
+    edges <- lapply(nodes, function(ids) rex_location_edges(x$ctx, ids))
+    rex_location_frame(nodes, edges)
   })
   rex_restore(output, results)
+}
+
+# Both columns are already lists of integer vectors of equal length. Avoid
+# data.frame's general coercion and recycling for every result glycan.
+rex_location_frame <- function(nodes, edges) {
+  n <- length(nodes)
+  class(nodes) <- "AsIs"
+  class(edges) <- "AsIs"
+  structure(
+    list(nodes = nodes, edges = edges),
+    class = "data.frame",
+    row.names = if (n) c(NA_integer_, -as.integer(n)) else integer()
+  )
+}
+
+rex_location_edges <- function(ctx, nodes) {
+  if (length(nodes) < 2L) {
+    return(integer())
+  }
+  if (is.null(ctx$cache$edge_ids)) {
+    ids <- integer(ctx$n)
+    ids[ctx$edges[, 2L]] <- seq_len(nrow(ctx$edges))
+    ctx$cache$edge_ids <- ids
+  }
+  ids <- ctx$cache$edge_ids[nodes[ctx$parent[nodes] %in% nodes]]
+  if (is.unsorted(ids)) sort.int(ids, method = "quick") else ids
 }
 
 #' Locate the First Structural Match
@@ -374,7 +451,7 @@ rex_locations <- function(results, first) {
 #' rex_locate(x, "Gal-GlcNAc")
 #' @export
 rex_locate <- function(glycans, pattern) {
-  rex_locations(rex_queries(glycans, pattern), TRUE)
+  rex_locations(rex_queries(glycans, pattern, first = TRUE), TRUE)
 }
 
 #' Locate All Structural Matches

@@ -1,6 +1,6 @@
 # glyrex (development version)
 
-* `rex_compile()` and query functions are faster for batch queries, especially when inputs contain repeated structures or patterns.
+* `rex_compile()` and query functions are faster for batch queries, including batches of distinct structures.
 
 # glyrex 0.1.0
 
