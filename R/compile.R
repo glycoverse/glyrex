@@ -34,6 +34,7 @@ rex_compile <- function(pattern) {
     stop("`pattern` must be one non-empty, non-missing string.", call. = FALSE)
   }
   source <- pattern
+  known <- rex_residues()$known
   pattern <- gsub("\\s+", "", pattern, perl = TRUE)
   if (startsWith(pattern, "r")) {
     pattern <- substring(pattern, 2L)
@@ -50,12 +51,14 @@ rex_compile <- function(pattern) {
     )
   }
   take <- function(rx) {
-    m <- regexpr(rx, tail(), perl = TRUE)
+    remaining <- tail()
+    m <- regexpr(rx, remaining, perl = TRUE)
     if (m[1L] != 1L) {
       return(NULL)
     }
-    value <- regmatches(tail(), m)
-    pos <<- pos + nchar(value)
+    width <- attr(m, "match.length")
+    value <- substr(remaining, 1L, width)
+    pos <<- pos + width
     value
   }
   node <- function(kind, ...) list(kind = kind, ...)
@@ -142,12 +145,6 @@ rex_compile <- function(pattern) {
         # Split shorthand only when the whole token is not a known residue.
         anomer <- donor <- acceptor <- NULL
         root <- FALSE
-        known <- c(
-          glyrepr::available_monosaccharides(),
-          "Sia",
-          "Monosaccharide",
-          "."
-        )
         if (!token %in% known) {
           m <- regexec(
             "^(.*?)([ab])([0-9]+(?:/[0-9]+)*|\\?)?$",
