@@ -1,5 +1,9 @@
 # glyrex function benchmark — 2026-10-24
 
+This is the historical baseline. See [the optimization comparison](optimization.md)
+for paired before/after results. New runs default to `results-current/` so that
+the original baseline is preserved.
+
 Run from the package root with `Rscript benchmarks/functions.R`.
 The script loads the working-tree package using `devtools::load_all()`.
 
